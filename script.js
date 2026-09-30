@@ -7,7 +7,7 @@
 /* ---- Translations ---- */
 const T = {
   es: {
-    discipline: "Arquitectura &amp; Ingeniería Civil",
+    discipline: "Arquitectura - Ingeniería Civil - Diseño",
     headline:   "Próximamente",
     body:       'Estamos construyendo algo con la misma dedicación<br class="br-d"/> que ponemos en cada proyecto.',
     progress:   "En construcción",
@@ -16,7 +16,7 @@ const T = {
     langLabel:  "EN",
   },
   en: {
-    discipline: "Architecture &amp; Civil Engineering",
+    discipline: "Architecture - Civil Engineering - Design",
     headline:   "Coming Soon",
     body:       'We\'re building something with the same dedication<br class="br-d"/> we bring to every project.',
     progress:   "Under construction",
