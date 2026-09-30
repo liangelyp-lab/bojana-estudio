@@ -327,8 +327,7 @@ h2 {
   min-width: 0;
   overflow: hidden;
   margin-top: 34px;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border: 0;
   padding: 1rem 0;
   background: transparent;
 }
