@@ -156,20 +156,6 @@ h1 {
   font-size: 18px;
   line-height: 1.55;
 }
-.disciplines {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 30px;
-}
-.disciplines span {
-  border: 1px solid #747474;
-  border-radius: 999px;
-  padding: 9px 15px;
-  color: #252525;
-  font-size: 14px;
-  line-height: 1.1;
-}
 
 .hero-media { padding-bottom: 92px; }
 .hero-figure { margin: 0; }
@@ -612,9 +598,11 @@ section[id] { scroll-margin-top: 96px; }
 .hero { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(24px, 3vw, 40px); align-items: center; padding-block: 48px; padding-inline: clamp(24px, 4vw, 56px); }
 .hero-main { min-width: 0; }
 .hero h1 { font-size: clamp(38px, 4.5vw, 56px); line-height: 1.06; }
-.hero-lead { font-size: 17px; margin-top: 20px; }
-.hero .disciplines { margin-top: 24px; gap: 8px; }
-.hero .disciplines span { padding: 8px 12px; }
+.hero-lead { font-size: 18px; margin-top: 20px; }
+.hero-lead + .hero-lead { margin-top: 14px; }
+.hero-experience { display: flex; align-items: center; gap: 12px; margin: 26px 0 0; color: var(--ink); font-size: 15px; line-height: 1.5; }
+.hero-experience svg { flex: 0 0 22px; width: 22px; height: 22px; }
+.hero-experience strong { font-weight: 600; }
 .hero-animation { width: min(100%, 420px); min-width: 0; justify-self: start; overflow: hidden; background: var(--paper); aspect-ratio: 1; }
 .hero-animation iframe { display: block; width: 100%; height: 100%; border: 0; }
 @media (max-width: 760px) {
