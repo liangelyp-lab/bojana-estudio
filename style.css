@@ -311,7 +311,7 @@ h2 {
 .plan-figure { margin: 0; background: var(--soft); }
 .plan-figure img { width: 100%; height: auto; }
 
-.studio { padding-bottom: 92px; }
+.studio { padding-bottom: 92px; padding-inline: clamp(24px, 4vw, 56px); }
 .studio-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, .8fr);
@@ -348,7 +348,7 @@ h2 {
   align-items: center;
   width: max-content;
   min-width: 200%;
-  animation: marquee 45s linear infinite;
+  animation: marquee 55s linear infinite;
 }
 .marquee-group {
   display: flex;
@@ -361,8 +361,9 @@ h2 {
   flex-shrink: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: calc(0.95rem + 0.5pt);
-  font-weight: 300;
+  font-weight: 350;
   font-style: italic;
+  letter-spacing: 0.03em;
   color: inherit;
   white-space: nowrap;
   padding: 0 2rem;
@@ -542,6 +543,7 @@ section[id] { scroll-margin-top: 96px; }
   .project-scroll .gallery-controls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; overflow: visible; }
   .project-scroll .gallery-option { flex-direction: column; align-items: flex-start; gap: 2px; }
   .project-scroll .gallery-option span:last-child { font-size: 13px; }
+  .studio { padding-inline: 8px; }
   .studio-grid { gap: 24px; padding-top: 28px; }
   .contact-grid { gap: 16px; }
   .contact-section { padding-block: 28px; }
