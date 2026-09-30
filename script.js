@@ -113,6 +113,40 @@
     updateNavigation();
   }
 
+  const contactVideo = document.querySelector('.contact-video');
+  const contactSection = document.querySelector('#contacto');
+  if (contactVideo && contactSection) {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let contactInView = false;
+    contactVideo.muted = true;
+    const updateContactVideo = () => {
+      if (!contactInView || document.hidden || reducedMotion.matches) {
+        contactVideo.pause();
+        return;
+      }
+      const source = contactVideo.querySelector('source[data-src]');
+      if (source) {
+        source.src = source.dataset.src;
+        source.removeAttribute('data-src');
+        contactVideo.load();
+      }
+      contactVideo.play().catch(() => {});
+    };
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(([entry]) => {
+        contactInView = entry.isIntersecting;
+        updateContactVideo();
+      }, { rootMargin: '160px' });
+      observer.observe(contactSection);
+    } else {
+      contactInView = true;
+      updateContactVideo();
+    }
+    contactVideo.addEventListener('canplay', updateContactVideo);
+    reducedMotion.addEventListener('change', updateContactVideo);
+    document.addEventListener('visibilitychange', updateContactVideo);
+  }
+
   const contactToggle = document.querySelector('#contact-toggle');
   const contactPanel = document.querySelector('#contact-form-panel');
   const inquiryForm = document.querySelector('#inquiry-form');

@@ -598,10 +598,39 @@ section[id] { scroll-margin-top: 96px; }
 
 /* A single contact composition, with an inline inquiry form. */
 [hidden] { display: none !important; }
-.contact-section { padding-block: 44px; }
-.contact-composition { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.contact-section {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #111;
+  color: #fff;
+  padding-block: clamp(88px, 8vw, 128px);
+}
+.contact-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.contact-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.24);
+}
+.contact-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, .65);
+  pointer-events: none;
+}
+.contact-composition { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .contact-section h2 { max-width: 700px; font-size: clamp(34px, 4.5vw, 50px); line-height: 1.1; }
-.contact-note { margin-top: 12px; }
+.contact-note { margin-top: 12px; color: #e0e4e0; }
 .contact-composition > .contact-button { max-width: 210px; margin-top: 24px; cursor: pointer; }
 .contact-composition > .contact-email { margin-top: 12px; }
 .contact-form-panel { width: min(100%, 640px); margin-top: 28px; padding-top: 24px; border-top: 1px solid #535953; text-align: left; scroll-margin-top: 84px; }
@@ -620,7 +649,7 @@ section[id] { scroll-margin-top: 96px; }
 .inquiry-status { margin: 0; color: #e0e4e0; font-size: 14px; line-height: 1.5; }
 .inquiry-status[data-state="error"] { color: #ffd6ca; }
 @media (max-width: 760px) {
-  .contact-section { padding-block: 34px; }
+  .contact-section { padding-block: 72px; }
   .contact-section h2 { max-width: 520px; }
   .contact-form-panel { margin-top: 24px; }
 }
