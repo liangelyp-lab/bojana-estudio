@@ -174,8 +174,7 @@ h1 {
   font-size: 13px;
 }
 
-.project,
-.studio { border-top: 1px solid var(--ink); }
+.project { border-top: 1px solid var(--ink); }
 .project { padding-bottom: 96px; }
 .section-topline {
   min-height: 56px;
@@ -311,12 +310,11 @@ h2 {
 .plan-figure { margin: 0; background: var(--soft); }
 .plan-figure img { width: 100%; height: auto; }
 
-.studio { padding-bottom: 92px; padding-inline: clamp(24px, 4vw, 56px); }
+.studio { padding-block: 80px; padding-inline: clamp(24px, 4vw, 56px); }
 .studio-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, .8fr);
   gap: 84px;
-  padding-top: 60px;
 }
 .studio-copy { max-width: 520px; }
 .studio-copy + .studio-copy { margin-top: 20px; }
@@ -488,7 +486,6 @@ h2 {
   .gallery-option { min-height: 54px; }
   .plan-layout { padding-top: 42px; }
   .plan-figure { order: -1; }
-  .studio-grid { padding-top: 44px; }
   .contact-section { padding-top: 58px; }
   .footer { flex-direction: column; }
 }
@@ -521,8 +518,6 @@ section[id] { scroll-margin-top: 96px; }
 .project-scroll .gallery-frame.active { opacity: 1; }
 .project-scroll .gallery-controls { padding: 0; list-style: none; }
 .project-scroll .gallery-option { cursor: default; }
-.studio { padding-bottom: 42px; }
-.studio-grid { padding-top: 36px; }
 .contact-section { background: transparent; color: var(--ink); border-top: 1px solid var(--line); padding-block: 36px 42px; }
 .contact-grid { gap: 44px; align-items: center; }
 .contact-section h2 { color: var(--ink); font-size: clamp(28px, 3vw, 36px); }
@@ -543,8 +538,8 @@ section[id] { scroll-margin-top: 96px; }
   .project-scroll .gallery-controls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; overflow: visible; }
   .project-scroll .gallery-option { flex-direction: column; align-items: flex-start; gap: 2px; }
   .project-scroll .gallery-option span:last-child { font-size: 13px; }
-  .studio { padding-inline: 8px; }
-  .studio-grid { gap: 24px; padding-top: 28px; }
+  .studio { padding-block: 56px; padding-inline: 8px; }
+  .studio-grid { gap: 24px; }
   .contact-grid { gap: 16px; }
   .contact-section { padding-block: 28px; }
   .footer { flex-direction: row; flex-wrap: wrap; gap: 8px 20px; }
