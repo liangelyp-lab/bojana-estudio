@@ -184,12 +184,112 @@
     let galleryFramePending = false;
     let stickyTop = 84;
     let scrollDistance = 1;
+    const studioSection = document.querySelector('#estudio');
+    let finalFrameShownAt = 0;
+    let transitionFrame = 0;
+    let transitioningToStudio = false;
+    const cancelStudioTransition = () => {
+      cancelAnimationFrame(transitionFrame);
+      transitionFrame = 0;
+      transitioningToStudio = false;
+    };
+    const canAdvanceToStudio = () => {
+      if (!studioSection || currentFrame !== frames.length - 1 || performance.now() - finalFrameShownAt < 350) return false;
+      const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+      return projectTrack.getBoundingClientRect().top <= stickyTop
+        && projectCard.getBoundingClientRect().bottom > headerBottom
+        && studioSection.getBoundingClientRect().top > headerBottom + 2;
+    };
+    const advanceToStudio = () => {
+      const startY = window.scrollY;
+      const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+      const studioTop = startY + studioSection.getBoundingClientRect().top;
+      // Keep enough scroll room for the section to reach the header on tall screens.
+      const missingRoom = window.innerHeight - headerBottom + 24 - (document.documentElement.scrollHeight - studioTop);
+      if (missingRoom > 0) studioSection.style.minHeight = studioSection.offsetHeight + missingRoom + 'px';
+      const targetY = Math.max(0, Math.min(
+        studioTop - headerBottom,
+        document.documentElement.scrollHeight - window.innerHeight
+      ));
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+        return;
+      }
+      transitioningToStudio = true;
+      const startedAt = performance.now();
+      const slide = (now) => {
+        const progress = Math.min(1, (now - startedAt) / 850);
+        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+        window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
+        if (progress < 1) transitionFrame = requestAnimationFrame(slide);
+        else cancelStudioTransition();
+      };
+      transitionFrame = requestAnimationFrame(slide);
+    };
+    if (studioSection) {
+      let lastWheelAt = -Infinity;
+      window.addEventListener('wheel', (event) => {
+        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        const now = performance.now();
+        const newGesture = now - lastWheelAt > 180;
+        lastWheelAt = now;
+        if (event.deltaY < 0) {
+          cancelStudioTransition();
+          return;
+        }
+        if (transitioningToStudio) event.preventDefault();
+        else if (newGesture && canAdvanceToStudio()) {
+          event.preventDefault();
+          advanceToStudio();
+        }
+      }, { passive: false });
+
+      let touchStartY = null;
+      let touchCanAdvance = false;
+      window.addEventListener('touchstart', (event) => {
+        cancelStudioTransition();
+        touchStartY = event.touches.length === 1 ? event.touches[0].clientY : null;
+        touchCanAdvance = touchStartY !== null && canAdvanceToStudio();
+      }, { passive: true });
+      window.addEventListener('touchmove', (event) => {
+        if (event.defaultPrevented || touchStartY === null || event.touches.length !== 1) return;
+        const distance = touchStartY - event.touches[0].clientY;
+        if (distance < -12) {
+          touchCanAdvance = false;
+          cancelStudioTransition();
+        } else if (event.cancelable && distance > 24 && (transitioningToStudio || touchCanAdvance)) {
+          event.preventDefault();
+          if (!transitioningToStudio) advanceToStudio();
+          touchCanAdvance = false;
+        }
+      }, { passive: false });
+      window.addEventListener('touchend', () => { touchStartY = null; touchCanAdvance = false; }, { passive: true });
+      window.addEventListener('touchcancel', () => { touchStartY = null; touchCanAdvance = false; }, { passive: true });
+
+      window.addEventListener('keydown', (event) => {
+        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
+        if (['ArrowUp', 'PageUp', 'Home', 'End', 'Escape'].includes(event.key) || (event.key === ' ' && event.shiftKey)) {
+          cancelStudioTransition();
+          return;
+        }
+        if (!['ArrowDown', 'PageDown', ' '].includes(event.key)) return;
+        if (transitioningToStudio) event.preventDefault();
+        else if (!event.repeat && canAdvanceToStudio()) {
+          event.preventDefault();
+          advanceToStudio();
+        }
+      });
+      document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', cancelStudioTransition));
+      window.addEventListener('resize', cancelStudioTransition);
+      window.addEventListener('pagehide', cancelStudioTransition);
+    }
     const updateGallery = () => {
       galleryFramePending = false;
       const progress = Math.max(0, Math.min(1, (stickyTop - projectTrack.getBoundingClientRect().top) / scrollDistance));
       const index = Math.min(frames.length - 1, Math.floor(progress * frames.length));
       if (index === currentFrame) return;
       currentFrame = index;
+      if (index === frames.length - 1) finalFrameShownAt = performance.now();
       frames.forEach((frame, i) => {
         frame.classList.toggle('active', i === index);
         frame.setAttribute('aria-hidden', String(i !== index));
@@ -207,6 +307,8 @@
       }
     };
     const measureGallery = () => {
+      cancelStudioTransition();
+      studioSection?.style.removeProperty('min-height');
       stickyTop = parseFloat(getComputedStyle(projectTrack).getPropertyValue('--project-sticky-top')) || 84;
       projectTrack.style.removeProperty('--gallery-max-height');
       const availableHeight = window.innerHeight - stickyTop - 16;
