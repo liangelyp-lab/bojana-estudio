@@ -394,7 +394,7 @@ h2 {
 .contact-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr);
-  gap: 84px;
+  gap: 30px;
   align-items: end;
 }
 .eyebrow-light { color: var(--dark-muted); }
