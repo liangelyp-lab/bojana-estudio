@@ -1,231 +1,228 @@
-// ============================================
-// Bojana Estudio — Interactions v2
-// Custom cursor · Canvas lines · Mouse parallax
-// Language toggle · Magnetic buttons
-// ============================================
-
-/* ---- Translations ---- */
-const T = {
-  es: {
-    discipline: "Arquitectura - Ingeniería Civil - Diseño",
-    headline:   "Próximamente",
-    body:       'Estamos construyendo algo con la misma dedicación<br class="br-d"/> que ponemos en cada proyecto.',
-    progress:   "En construcción",
-    scope:      "Trabajo remoto global &nbsp;·&nbsp; Presencial en Argentina",
-    footer:     "© 2026 Bojana Estudio",
-    langLabel:  "EN",
-  },
-  en: {
-    discipline: "Architecture - Civil Engineering - Design",
-    headline:   "Coming Soon",
-    body:       'We\'re building something with the same dedication<br class="br-d"/> we bring to every project.',
-    progress:   "Under construction",
-    scope:      "Remote worldwide &nbsp;·&nbsp; On-site in Argentina",
-    footer:     "© 2026 Bojana Estudio",
-    langLabel:  "ES",
+(() => {
+  const header = document.querySelector('.site-header');
+  if (header) {
+    let compact = false;
+    let framePending = false;
+    const updateHeader = () => {
+      if (window.scrollY > 80) compact = true;
+      else if (window.scrollY < 24) compact = false;
+      header.classList.toggle('is-compact', compact);
+      framePending = false;
+    };
+    const scheduleHeaderUpdate = () => {
+      if (!framePending) {
+        framePending = true;
+        requestAnimationFrame(updateHeader);
+      }
+    };
+    window.addEventListener('scroll', scheduleHeaderUpdate, { passive: true });
+    window.addEventListener('pageshow', updateHeader);
+    updateHeader();
   }
-};
 
-let lang = "es";
+  document.querySelectorAll('.brand').forEach((brand) => {
+    const logo = brand.querySelector('img');
+    if (!logo) return;
+    logo.addEventListener('error', () => brand.classList.add('logo-error'));
+    if (logo.complete && logo.naturalWidth === 0) brand.classList.add('logo-error');
+  });
 
-function toggleLang() {
-  lang = lang === "es" ? "en" : "es";
-  applyLang(lang);
-}
+  const toggle = document.querySelector('.menu-toggle');
+  const nav = document.querySelector('#site-nav');
+  if (toggle && nav) {
+    const closeMenu = () => {
+      toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Abrir menú');
+      nav.classList.remove('open');
+    };
 
-function applyLang(l) {
-  const t = T[l];
-  const $ = id => document.getElementById(id);
-  $("txt-discipline").innerHTML = t.discipline;
-  $("txt-headline").innerHTML   = `<span class="word">${t.headline}</span>`;
-  $("txt-body").innerHTML       = t.body;
-  $("txt-progress").textContent = t.progress;
-  $("txt-scope").innerHTML      = t.scope;
-  $("txt-footer").textContent   = t.footer;
-  $("lang-label").textContent   = t.langLabel;
-  document.documentElement.lang = l;
-}
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
+      toggle.setAttribute('aria-label', expanded ? 'Abrir menú' : 'Cerrar menú');
+      nav.classList.toggle('open', !expanded);
+    });
 
-// Detect browser language
-window.addEventListener("DOMContentLoaded", () => {
-  if (navigator.language?.startsWith("en")) {
-    lang = "en";
-    applyLang("en");
+    nav.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && nav.classList.contains('open')) {
+        closeMenu();
+        toggle.focus();
+      }
+    });
   }
-});
 
-/* ---- Custom cursor ---- */
-const cursor     = document.getElementById("cursor");
-const cursorInner = cursor?.querySelector(".cursor-inner");
-const cursorRing  = cursor?.querySelector(".cursor-ring");
-
-let mx = -100, my = -100;
-let rx = -100, ry = -100;
-
-document.addEventListener("mousemove", e => {
-  mx = e.clientX;
-  my = e.clientY;
-  if (cursorInner) {
-    cursorInner.style.left = mx + "px";
-    cursorInner.style.top  = my + "px";
-  }
-});
-
-function lerp(a, b, t) { return a + (b - a) * t; }
-
-function animateCursor() {
-  rx = lerp(rx, mx, 0.12);
-  ry = lerp(ry, my, 0.12);
-  if (cursorRing) {
-    cursorRing.style.left = rx + "px";
-    cursorRing.style.top  = ry + "px";
-  }
-  requestAnimationFrame(animateCursor);
-}
-animateCursor();
-
-// Hover state for interactive elements
-document.querySelectorAll("a, button, .logo").forEach(el => {
-  el.addEventListener("mouseenter", () => document.body.classList.add("cursor-hover"));
-  el.addEventListener("mouseleave", () => document.body.classList.remove("cursor-hover"));
-});
-
-/* ---- Canvas: animated architectural lines ---- */
-const canvas = document.getElementById("canvas");
-const ctx    = canvas.getContext("2d");
-
-let W, H;
-let mouseX = 0.5, mouseY = 0.5;
-let lines   = [];
-let nodes   = [];
-let tick    = 0;
-
-function resize() {
-  W = canvas.width  = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", () => { resize(); initCanvas(); });
-
-document.addEventListener("mousemove", e => {
-  mouseX = e.clientX / W;
-  mouseY = e.clientY / H;
-});
-
-/* Grid nodes */
-function initCanvas() {
-  nodes = [];
-  lines = [];
-
-  const cols = Math.ceil(W / 120) + 1;
-  const rows = Math.ceil(H / 120) + 1;
-
-  for (let r = 0; r <= rows; r++) {
-    for (let c = 0; c <= cols; c++) {
-      nodes.push({
-        bx: c * 120,
-        by: r * 120,
-        vx: (Math.random() - 0.5) * 0.18,
-        vy: (Math.random() - 0.5) * 0.18,
-        ox: (Math.random() - 0.5) * 12,
-        oy: (Math.random() - 0.5) * 12,
-        phase: Math.random() * Math.PI * 2,
+  if (nav) {
+    const links = [...nav.querySelectorAll('a[href^="#"]')];
+    const sections = links.map((link) => document.querySelector(link.getAttribute('href'))).filter(Boolean);
+    let pendingSection = null;
+    let pendingTimer = null;
+    let navFramePending = false;
+    const setActive = (id) => {
+      links.forEach((link) => {
+        const active = link.getAttribute('href') === '#' + id;
+        link.classList.toggle('is-active', active);
+        if (active) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
       });
-    }
+    };
+    const updateNavigation = () => {
+      navFramePending = false;
+      const marker = (header ? header.getBoundingClientRect().bottom : 0) + 64;
+      const atBottom = window.scrollY > 0 && window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      if (pendingSection) {
+        const top = pendingSection.getBoundingClientRect().top;
+        if ((top >= -16 && top <= marker) || (atBottom && pendingSection === sections.at(-1))) {
+          pendingSection = null;
+          clearTimeout(pendingTimer);
+        } else return;
+      }
+      let current = null;
+      for (const section of sections) {
+        if (section.getBoundingClientRect().top <= marker) current = section.id;
+      }
+      if (atBottom) current = sections.at(-1)?.id;
+      setActive(current);
+    };
+    const scheduleNavigation = () => {
+      if (!navFramePending) {
+        navFramePending = true;
+        requestAnimationFrame(updateNavigation);
+      }
+    };
+    links.forEach((link) => link.addEventListener('click', () => {
+      pendingSection = document.querySelector(link.getAttribute('href'));
+      setActive(pendingSection?.id);
+      clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(() => { pendingSection = null; updateNavigation(); }, 1500);
+    }));
+    const cancelPending = () => {
+      pendingSection = null;
+      clearTimeout(pendingTimer);
+      scheduleNavigation();
+    };
+    window.addEventListener('scroll', scheduleNavigation, { passive: true });
+    window.addEventListener('resize', scheduleNavigation);
+    window.addEventListener('pageshow', scheduleNavigation);
+    window.addEventListener('wheel', cancelPending, { passive: true });
+    window.addEventListener('touchstart', cancelPending, { passive: true });
+    window.addEventListener('keydown', (event) => {
+      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) cancelPending();
+    });
+    updateNavigation();
   }
 
-  // Horizontal + vertical lines from grid
-  const cols1 = Math.ceil(W / 120) + 1;
-  for (let r = 0; r <= Math.ceil(H / 120); r++) {
-    for (let c = 0; c < cols1; c++) {
-      const i = r * (cols1) + c;
-      if (c < cols1 - 1) lines.push([i, i + 1]);           // horizontal
-      if (r < Math.ceil(H / 120)) lines.push([i, i + cols1]); // vertical
-    }
+  const contactToggle = document.querySelector('#contact-toggle');
+  const contactPanel = document.querySelector('#contact-form-panel');
+  const inquiryForm = document.querySelector('#inquiry-form');
+  if (contactToggle && contactPanel && inquiryForm) {
+    contactToggle.addEventListener('click', () => {
+      contactPanel.hidden = false;
+      contactToggle.setAttribute('aria-expanded', 'true');
+      contactToggle.hidden = true;
+      document.querySelector('#inquiry-name').focus({ preventScroll: true });
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      contactPanel.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+    });
+
+    const submitButton = document.querySelector('#inquiry-submit');
+    const status = document.querySelector('#inquiry-status');
+    inquiryForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (submitButton.disabled || !inquiryForm.reportValidity()) return;
+      const values = Object.fromEntries(new FormData(inquiryForm));
+      values.name = values.name.trim();
+      values.email = values.email.trim();
+      values.message = values.message.trim();
+      if (!values.name || values.message.length < 10) {
+        status.textContent = 'Escribe tu nombre y una consulta de al menos 10 caracteres.';
+        status.dataset.state = 'error';
+        return;
+      }
+      if (values._honey) return;
+      values._replyto = values.email;
+      values._url = window.location.href.split('#')[0];
+      submitButton.disabled = true;
+      submitButton.textContent = 'Enviando…';
+      inquiryForm.setAttribute('aria-busy', 'true');
+      status.textContent = '';
+      delete status.dataset.state;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000);
+      try {
+        const response = await fetch('https://formsubmit.co/ajax/info@bojana.com.ar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify(values),
+          signal: controller.signal,
+        });
+        const result = await response.json();
+        if (!response.ok || ![true, 'true'].includes(result.success)) throw new Error('Submission not accepted');
+        status.textContent = 'Gracias. Tu consulta fue enviada.';
+        status.dataset.state = 'success';
+        inquiryForm.reset();
+      } catch {
+        status.textContent = 'No pudimos enviar tu consulta. Intenta nuevamente o escribe a info@bojana.com.ar.';
+        status.dataset.state = 'error';
+      } finally {
+        clearTimeout(timeout);
+        submitButton.disabled = false;
+        submitButton.textContent = 'Enviar consulta';
+        inquiryForm.removeAttribute('aria-busy');
+      }
+    });
   }
-}
 
-function drawCanvas() {
-  ctx.clearRect(0, 0, W, H);
-  tick += 0.004;
-
-  // Parallax influence from mouse
-  const px = (mouseX - 0.5) * 30;
-  const py = (mouseY - 0.5) * 20;
-
-  // Update nodes
-  nodes.forEach(n => {
-    n.ox += n.vx;
-    n.oy += n.vy;
-    if (Math.abs(n.ox) > 14) n.vx *= -1;
-    if (Math.abs(n.oy) > 14) n.vy *= -1;
-  });
-
-  // Draw lines
-  ctx.lineWidth = 0.5;
-  lines.forEach(([ai, bi]) => {
-    const a = nodes[ai], b = nodes[bi];
-    if (!a || !b) return;
-
-    const ax = a.bx + a.ox + px;
-    const ay = a.by + a.oy + py;
-    const bx = b.bx + b.ox + px;
-    const by_ = b.by + b.oy + py;
-
-    // Fade lines near center (where content lives)
-    const cx = (ax + bx) / 2 / W;
-    const cy_ = (ay + by_) / 2 / H;
-    const distCenter = Math.hypot(cx - 0.5, cy_ - 0.5);
-    const alpha = Math.max(0, Math.min(0.07, (distCenter - 0.1) * 0.35));
-
-    ctx.strokeStyle = `rgba(200,184,154,${alpha})`;
-    ctx.beginPath();
-    ctx.moveTo(ax, ay);
-    ctx.lineTo(bx, by_);
-    ctx.stroke();
-  });
-
-  // Glowing nodes at intersections (sparse, random)
-  nodes.forEach((n, i) => {
-    if (i % 9 !== 0) return;
-    const nx = n.bx + n.ox + px;
-    const ny_ = n.by + n.oy + py;
-    const pulse = (Math.sin(tick * 2 + n.phase) + 1) / 2;
-    const cx = nx / W, cy_ = ny_ / H;
-    const dist = Math.hypot(cx - 0.5, cy_ - 0.5);
-    const alpha = Math.max(0, (dist - 0.12) * 0.4) * pulse;
-
-    ctx.fillStyle = `rgba(200,184,154,${alpha * 0.6})`;
-    ctx.beginPath();
-    ctx.arc(nx, ny_, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  requestAnimationFrame(drawCanvas);
-}
-
-initCanvas();
-drawCanvas();
-
-/* ---- Magnetic contact button ---- */
-const magnet = document.querySelector(".magnetic");
-if (magnet) {
-  magnet.addEventListener("mousemove", e => {
-    const r  = magnet.getBoundingClientRect();
-    const dx = e.clientX - (r.left + r.width  / 2);
-    const dy = e.clientY - (r.top  + r.height / 2);
-    magnet.style.transform = `translate(${dx * 0.25}px, ${dy * 0.35}px)`;
-  });
-  magnet.addEventListener("mouseleave", () => {
-    magnet.style.transform = "";
-  });
-}
-
-/* ---- Parallax on logo with mouse ---- */
-const logoWrap = document.querySelector(".logo-wrap");
-document.addEventListener("mousemove", e => {
-  if (!logoWrap) return;
-  const dx = (e.clientX / window.innerWidth  - 0.5) * 12;
-  const dy = (e.clientY / window.innerHeight - 0.5) * 6;
-  logoWrap.style.transform = `translate(${dx}px, ${dy}px)`;
-});
+  const projectTrack = document.querySelector('.project-scroll');
+  const projectCard = projectTrack?.querySelector('.project-card');
+  const galleryStage = projectTrack?.querySelector('.gallery-stage');
+  const frames = [...document.querySelectorAll('.gallery-frame')];
+  const captions = [...document.querySelectorAll('.gallery-option')];
+  if (projectTrack && projectCard && galleryStage && frames.length) {
+    let currentFrame = -1;
+    let galleryFramePending = false;
+    let stickyTop = 84;
+    let scrollDistance = 1;
+    const updateGallery = () => {
+      galleryFramePending = false;
+      const progress = Math.max(0, Math.min(1, (stickyTop - projectTrack.getBoundingClientRect().top) / scrollDistance));
+      const index = Math.min(frames.length - 1, Math.floor(progress * frames.length));
+      if (index === currentFrame) return;
+      currentFrame = index;
+      frames.forEach((frame, i) => {
+        frame.classList.toggle('active', i === index);
+        frame.setAttribute('aria-hidden', String(i !== index));
+      });
+      captions.forEach((caption, i) => {
+        caption.classList.toggle('active', i === index);
+        if (i === index) caption.setAttribute('aria-current', 'step');
+        else caption.removeAttribute('aria-current');
+      });
+    };
+    const scheduleGalleryUpdate = () => {
+      if (!galleryFramePending) {
+        galleryFramePending = true;
+        requestAnimationFrame(updateGallery);
+      }
+    };
+    const measureGallery = () => {
+      stickyTop = parseFloat(getComputedStyle(projectTrack).getPropertyValue('--project-sticky-top')) || 84;
+      projectTrack.style.removeProperty('--gallery-max-height');
+      const availableHeight = window.innerHeight - stickyTop - 16;
+      const overflow = projectCard.offsetHeight - availableHeight;
+      if (overflow > 0) {
+        projectTrack.style.setProperty('--gallery-max-height', Math.max(120, galleryStage.offsetHeight - overflow) + 'px');
+      }
+      scrollDistance = Math.max(240, window.innerHeight * .5) * (frames.length - 1);
+      projectTrack.style.minHeight = projectCard.offsetHeight + scrollDistance + 'px';
+      projectTrack.classList.add('is-scroll-ready');
+      updateGallery();
+    };
+    window.addEventListener('scroll', scheduleGalleryUpdate, { passive: true });
+    window.addEventListener('resize', measureGallery);
+    window.addEventListener('pageshow', measureGallery);
+    document.fonts?.ready.then(measureGallery);
+    measureGallery();
+  }
+})();

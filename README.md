@@ -1,25 +1,30 @@
 # Bojana Estudio
 
-Sitio web de **Bojana Estudio** — arquitectura e ingeniería civil.
+Sitio web de Bojana Estudio: Arquitectura, Ingeniería Civil, Diseño y Construcción.
 
-- 🌐 [bojana.com.ar](https://bojana.com.ar)
-- Desplegado en [Vercel](https://vercel.com)
+- Sitio: https://bojana.com.ar
+- Hosting: Vercel
+- Sitio estático, sin instalación ni compilación.
 
-## Estructura
+## Contenido
 
-```
-/
-├── index.html          # Página principal (coming soon)
-├── style.css           # Estilos
-├── script.js           # Toggle de idioma ES / EN
-├── bg-lines.jpg        # Imagen de fondo arquitectónico
-└── Bojana-Estudio-Logo-White.svg  # Logo
-```
+- Hero con animación del plano a los renders de habitación y living.
+- Proyecto Los Alisos: Acceso SUM, SUM, Gimnasio y Exteriores. Los renders cambian con el scroll de la página y también al volver hacia arriba.
+- Sección Estudio y formulario de consultas.
+- Menú de hamburguesa en móvil y accesos de email y WhatsApp en el footer.
+
+## Archivos
+
+- `index.html`: página principal.
+- `style.css`: estilos y layout responsive.
+- `script.js`: navegación, galería con scroll y formulario.
+- `assets/`: renders y animación del hero.
+- `Bojana-Estudio-Logo-White.svg`: logo del estudio.
 
 ## Desarrollo local
 
-Abrí `index.html` directo en el navegador, o usá cualquier servidor estático:
+Desde la raíz del repositorio, ejecutá `python -m http.server 8000` y abrí `http://localhost:8000`.
 
-```bash
-npx serve .
-```
+## Formulario
+
+Las consultas se envían a `info@bojana.com.ar` mediante FormSubmit. La recepción requiere confirmar una vez el email de activación de FormSubmit; la entrega real de mensajes aún no se verificó.
