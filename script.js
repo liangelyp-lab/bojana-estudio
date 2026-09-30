@@ -149,15 +149,39 @@
 
   const contactToggle = document.querySelector('#contact-toggle');
   const contactPanel = document.querySelector('#contact-form-panel');
+  const contactSection = document.querySelector('#contacto');
   const inquiryForm = document.querySelector('#inquiry-form');
-  if (contactToggle && contactPanel && inquiryForm) {
+  if (contactToggle && contactPanel && inquiryForm && contactSection) {
     contactToggle.addEventListener('click', () => {
       contactPanel.hidden = false;
       contactToggle.setAttribute('aria-expanded', 'true');
       contactToggle.hidden = true;
-      document.querySelector('#inquiry-name').focus({ preventScroll: true });
+      contactSection.classList.add('is-form-open');
+
+      const headerHeight = header ? (header.classList.contains('is-compact') ? header.offsetHeight : 59) : 0;
+      const contactTop = window.scrollY + contactSection.getBoundingClientRect().top;
+      const targetY = Math.round(contactTop - headerHeight);
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      contactPanel.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+
+      if (reduced) {
+        window.scrollTo({ top: targetY, behavior: 'instant' });
+      } else {
+        const startY = window.scrollY;
+        const startedAt = performance.now();
+        const duration = 650;
+        const slideContact = (now) => {
+          const progress = Math.min(1, (now - startedAt) / duration);
+          const eased = 1 - Math.pow(1 - progress, 4);
+          window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
+          if (progress < 1) requestAnimationFrame(slideContact);
+          else window.scrollTo({ top: targetY, behavior: 'instant' });
+        };
+        requestAnimationFrame(slideContact);
+      }
+
+      setTimeout(() => {
+        document.querySelector('#inquiry-name')?.focus({ preventScroll: true });
+      }, 350);
     });
 
     const submitButton = document.querySelector('#inquiry-submit');
@@ -227,78 +251,88 @@
       transitionFrame = 0;
       transitioningToStudio = false;
     };
+    const getHeaderHeight = () => (header ? (header.classList.contains('is-compact') ? header.offsetHeight : 59) : 0);
     const canAdvanceToStudio = () => {
-      if (!studioSection || currentFrame !== frames.length - 1 || performance.now() - finalFrameShownAt < 350) return false;
-      const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-      return projectTrack.getBoundingClientRect().top <= stickyTop
-        && projectCard.getBoundingClientRect().bottom > headerBottom
-        && studioSection.getBoundingClientRect().top > headerBottom + 2;
+      if (!studioSection || currentFrame !== frames.length - 1 || performance.now() - finalFrameShownAt < 200) return false;
+      const headerHeight = getHeaderHeight();
+      return studioSection.getBoundingClientRect().top > headerHeight + 3;
     };
     const advanceToStudio = () => {
+      if (transitioningToStudio) return;
+      cancelStudioTransition();
+
       const startY = window.scrollY;
-      const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+      const headerHeight = getHeaderHeight();
       const studioTop = startY + studioSection.getBoundingClientRect().top;
-      // Keep enough scroll room for the section to reach the header on tall screens.
-      const missingRoom = window.innerHeight - headerBottom + 24 - (document.documentElement.scrollHeight - studioTop);
-      if (missingRoom > 0) studioSection.style.minHeight = studioSection.offsetHeight + missingRoom + 'px';
-      const targetY = Math.max(0, Math.min(
-        studioTop - headerBottom,
-        document.documentElement.scrollHeight - window.innerHeight
-      ));
+      const targetY = Math.round(studioTop - headerHeight);
+
+      if (Math.abs(targetY - startY) < 4) return;
+
+      const mainEl = document.querySelector('main');
+      const missingRoom = window.innerHeight - headerHeight - (document.documentElement.scrollHeight - studioTop);
+      if (missingRoom > 0 && mainEl) {
+        mainEl.style.paddingBottom = missingRoom + 'px';
+      }
+
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         window.scrollTo({ top: targetY, behavior: 'instant' });
         return;
       }
+
       transitioningToStudio = true;
       const startedAt = performance.now();
+      const duration = 650;
       const slide = (now) => {
-        const progress = Math.min(1, (now - startedAt) / 850);
-        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 4);
         window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
-        if (progress < 1) transitionFrame = requestAnimationFrame(slide);
-        else cancelStudioTransition();
+        if (progress < 1) {
+          transitionFrame = requestAnimationFrame(slide);
+        } else {
+          window.scrollTo({ top: targetY, behavior: 'instant' });
+          cancelStudioTransition();
+        }
       };
       transitionFrame = requestAnimationFrame(slide);
     };
     if (studioSection) {
-      let lastWheelAt = -Infinity;
       window.addEventListener('wheel', (event) => {
         if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-        const now = performance.now();
-        const newGesture = now - lastWheelAt > 180;
-        lastWheelAt = now;
         if (event.deltaY < 0) {
           cancelStudioTransition();
           return;
         }
-        if (transitioningToStudio) event.preventDefault();
-        else if (newGesture && canAdvanceToStudio()) {
+        if (transitioningToStudio) {
+          event.preventDefault();
+          return;
+        }
+        if (event.deltaY > 0 && canAdvanceToStudio()) {
           event.preventDefault();
           advanceToStudio();
         }
       }, { passive: false });
 
       let touchStartY = null;
-      let touchCanAdvance = false;
       window.addEventListener('touchstart', (event) => {
         cancelStudioTransition();
         touchStartY = event.touches.length === 1 ? event.touches[0].clientY : null;
-        touchCanAdvance = touchStartY !== null && canAdvanceToStudio();
       }, { passive: true });
       window.addEventListener('touchmove', (event) => {
         if (event.defaultPrevented || touchStartY === null || event.touches.length !== 1) return;
         const distance = touchStartY - event.touches[0].clientY;
         if (distance < -12) {
-          touchCanAdvance = false;
           cancelStudioTransition();
-        } else if (event.cancelable && distance > 24 && (transitioningToStudio || touchCanAdvance)) {
-          event.preventDefault();
-          if (!transitioningToStudio) advanceToStudio();
-          touchCanAdvance = false;
+        } else if (distance > 18) {
+          if (transitioningToStudio) {
+            if (event.cancelable) event.preventDefault();
+          } else if (canAdvanceToStudio()) {
+            if (event.cancelable) event.preventDefault();
+            advanceToStudio();
+          }
         }
       }, { passive: false });
-      window.addEventListener('touchend', () => { touchStartY = null; touchCanAdvance = false; }, { passive: true });
-      window.addEventListener('touchcancel', () => { touchStartY = null; touchCanAdvance = false; }, { passive: true });
+      window.addEventListener('touchend', () => { touchStartY = null; }, { passive: true });
+      window.addEventListener('touchcancel', () => { touchStartY = null; }, { passive: true });
 
       window.addEventListener('keydown', (event) => {
         if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
@@ -307,8 +341,9 @@
           return;
         }
         if (!['ArrowDown', 'PageDown', ' '].includes(event.key)) return;
-        if (transitioningToStudio) event.preventDefault();
-        else if (!event.repeat && canAdvanceToStudio()) {
+        if (transitioningToStudio) {
+          event.preventDefault();
+        } else if (!event.repeat && canAdvanceToStudio()) {
           event.preventDefault();
           advanceToStudio();
         }
@@ -342,6 +377,7 @@
     };
     const measureGallery = () => {
       cancelStudioTransition();
+      document.querySelector('main')?.style.removeProperty('padding-bottom');
       studioSection?.style.removeProperty('min-height');
       stickyTop = parseFloat(getComputedStyle(projectTrack).getPropertyValue('--project-sticky-top')) || 84;
       projectTrack.style.removeProperty('--gallery-max-height');
