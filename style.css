@@ -603,10 +603,10 @@ section[id] { scroll-margin-top: 96px; }
 .hero-experience { display: flex; align-items: center; gap: 12px; margin: 26px 0 0; color: var(--ink); font-size: 15px; line-height: 1.5; }
 .hero-experience svg { flex: 0 0 22px; width: 22px; height: 22px; }
 .hero-experience strong { font-weight: 600; }
-.hero-animation { width: min(100%, 460px); min-width: 0; justify-self: start; overflow: hidden; background: var(--paper); aspect-ratio: 1; }
+.hero-animation { width: min(100%, 500px); min-width: 0; justify-self: start; overflow: hidden; background: var(--paper); aspect-ratio: 1; }
 .hero-animation iframe { display: block; width: 100%; height: 100%; border: 0; }
 @media (max-width: 760px) {
   .hero { grid-template-columns: 1fr; gap: 24px; padding-block: 36px; padding-inline: 8px; }
   .hero h1 { font-size: clamp(36px, 9vw, 46px); }
-  .hero-animation { width: min(100%, 380px); justify-self: center; }
+  .hero-animation { width: min(100%, 400px); justify-self: center; }
 }
