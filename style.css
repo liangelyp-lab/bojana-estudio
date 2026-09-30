@@ -479,7 +479,7 @@ h2 {
   .project-intro,
   .studio-grid,
   .plan-layout,
-  .contact-grid { grid-template-columns: 1fr; gap: 34px; }
+  .contact-grid { grid-template-columns: 1fr; gap: 50px; }
   .project-intro { padding-block: 42px; }
   .gallery { grid-template-columns: 1fr; gap: 0; padding-bottom: 62px; }
   .gallery-controls { margin-top: 18px; }
