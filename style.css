@@ -320,16 +320,75 @@ h2 {
 }
 .studio-copy { max-width: 520px; }
 .studio-copy + .studio-copy { margin-top: 20px; }
-.practice-list { margin-top: 34px; border-top: 1px solid var(--line); }
-.practice-list div {
-  min-height: 52px;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  align-items: center;
+/* Infinite studio ticker, with two equal groups for a seamless loop. */
+.marquee-wrap {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  margin-top: 34px;
+  border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
+  padding: 1rem 0;
+  background: transparent;
 }
-.practice-list strong { font-size: 16px; font-weight: 500; }
+.marquee-description {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.marquee-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  min-width: 200%;
+  animation: marquee 28s linear infinite;
+}
+.marquee-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  flex: 1 0 auto;
+}
+.marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+.marquee-item {
+  flex-shrink: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 300;
+  font-style: italic;
+  color: var(--muted);
+  white-space: nowrap;
+  padding: 0 2rem;
+  transition: color 0.3s ease;
+  user-select: none;
+}
+.marquee-item:hover { color: var(--ink); }
+.marquee-sep {
+  flex-shrink: 0;
+  font-size: 0.5rem;
+  color: var(--muted);
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (max-width: 760px) {
+  .marquee-wrap { margin-top: 28px; }
+  .marquee-item { padding-inline: 1.25rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { width: 100%; min-width: 0; animation: none; }
+  .marquee-group { flex: 1 1 auto; flex-wrap: wrap; justify-content: center; gap: 8px 0; }
+  .marquee-group--copy { display: none; }
+  .marquee-item { padding-inline: 0.75rem; }
+}
 
 .contact-section {
   background: var(--dark);
