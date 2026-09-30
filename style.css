@@ -389,7 +389,7 @@ h2 {
 .contact-section {
   background: var(--dark);
   color: #fff;
-  padding-block: 30px 28px;
+  padding-block: 45px 28px;
 }
 .contact-grid {
   display: grid;
