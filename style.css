@@ -604,7 +604,7 @@ section[id] { scroll-margin-top: 96px; }
   overflow: hidden;
   background: #111;
   color: #fff;
-  padding-block: clamp(88px, 8vw, 128px);
+  padding-block: clamp(30px, 8vw, 30px);
 }
 .contact-backdrop {
   position: absolute;
