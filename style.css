@@ -638,10 +638,10 @@ section[id] { scroll-margin-top: 96px; }
 .form-field { min-width: 0; }
 .form-field-message { grid-column: 1 / -1; }
 .form-field label { display: block; margin-bottom: 7px; color: #e0e4e0; font-size: 14px; }
-.form-field input, .form-field textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #616960; border-radius: 6px; background: #dard; color: #fff; font-size: 16px; line-height: 1.5; }
+.form-field input, .form-field textarea { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #616960; border-radius: 6px; background: #000; color: #fff; font-size: 16px; line-height: 1.5; }
 .form-field input::placeholder, .form-field textarea::placeholder { color: #b0b8b0; opacity: 1; }
 .form-field textarea { display: block; resize: vertical; min-height: 120px; }
-.form-field input:focus-visible, .form-field textarea:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.form-field input:focus-visible, .form-field textarea:focus-visible { outline: 1px solid #fff; outline-offset: 2px; }
 .form-honeypot { display: none; }
 .form-submit-row { display: flex; align-items: center; gap: 20px; margin-top: 20px; }
 .form-submit-row .contact-button { flex: 0 0 180px; width: auto; cursor: pointer; }
