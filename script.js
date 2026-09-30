@@ -197,8 +197,25 @@
         status.dataset.state = 'success';
         inquiryForm.reset();
       } catch {
-        status.textContent = 'No pudimos enviar tu consulta. Intenta nuevamente o escribe a info@bojana.com.ar.';
-        status.dataset.state = 'error';
+        inquiryForm.querySelector('[name="_captcha"]')?.remove();
+        let replyTo = inquiryForm.querySelector('[name="_replyto"]');
+        if (!replyTo) {
+          replyTo = document.createElement('input');
+          replyTo.type = 'hidden';
+          replyTo.name = '_replyto';
+          inquiryForm.appendChild(replyTo);
+        }
+        replyTo.value = values.email;
+        let next = inquiryForm.querySelector('[name="_next"]');
+        if (!next) {
+          next = document.createElement('input');
+          next.type = 'hidden';
+          next.name = '_next';
+          inquiryForm.appendChild(next);
+        }
+        next.value = 'https://bojana.com.ar/#contacto';
+        inquiryForm.submit();
+        return;
       } finally {
         clearTimeout(timeout);
         submitButton.disabled = false;
