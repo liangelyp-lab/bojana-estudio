@@ -310,7 +310,7 @@ h2 {
 .plan-figure { margin: 0; background: var(--soft); }
 .plan-figure img { width: 100%; height: auto; }
 
-.studio { padding-block: 80px; padding-inline: clamp(24px, 4vw, 56px); }
+.studio { padding-block: 40px; padding-inline: clamp(24px, 4vw, 56px); }
 .studio-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, .8fr);
