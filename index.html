@@ -3,95 +3,130 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- SEO -->
   <title>Bojana Estudio — Arquitectura & Ingeniería Civil</title>
   <meta name="description" content="Bojana Estudio: arquitectura e ingeniería civil. Proyectos remotos a nivel global y presencial en Argentina. Próximamente." />
-  <meta name="keywords" content="arquitectura, ingeniería civil, Argentina, estudio, diseño, construcción" />
   <meta property="og:title" content="Bojana Estudio" />
   <meta property="og:description" content="Arquitectura e ingeniería civil. Remoto global · Presencial Argentina." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://bojana.com.ar" />
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@200;300;400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- Background architectural drawing -->
-  <div class="bg-drawing" aria-hidden="true">
-    <img src="bg-lines.jpg" alt="" />
-    <div class="bg-overlay"></div>
+  <!-- Custom cursor -->
+  <div id="cursor" class="cursor" aria-hidden="true">
+    <div class="cursor-inner"></div>
+    <div class="cursor-ring"></div>
   </div>
 
-  <!-- Grid lines overlay -->
-  <div class="grid-overlay" aria-hidden="true"></div>
+  <!-- Canvas for animated architectural lines -->
+  <canvas id="canvas" aria-hidden="true"></canvas>
+
+  <!-- Noise overlay -->
+  <div class="noise" aria-hidden="true"></div>
 
   <!-- Language toggle -->
-  <button
-    id="lang-toggle"
-    class="lang-toggle"
-    aria-label="Switch language"
-    onclick="toggleLang()"
-  >
+  <button id="lang-toggle" class="lang-toggle" onclick="toggleLang()" aria-label="Switch language">
     <span id="lang-label">EN</span>
+    <span class="lang-line"></span>
   </button>
 
-  <!-- Main content -->
+  <!-- Main -->
   <main class="main">
 
     <!-- Logo -->
-    <header class="logo-wrap" role="banner">
-      <img
-        src="Bojana-Estudio-Logo-White.svg"
-        alt="Bojana Estudio"
-        class="logo"
-        id="site-logo"
-      />
-    </header>
+    <div class="logo-wrap reveal-up" style="--delay: 0.1s">
+      <img src="Bojana-Estudio-Logo-White.svg" alt="Bojana Estudio" class="logo" id="site-logo" />
+    </div>
 
-    <!-- Tagline -->
-    <section class="content" aria-label="Presentación">
+    <!-- Discipline tag -->
+    <div class="tag-row reveal-up" style="--delay: 0.35s">
+      <span class="tag-line"></span>
+      <p class="tag" id="txt-discipline">Arquitectura &amp; Ingeniería Civil</p>
+      <span class="tag-line"></span>
+    </div>
 
-      <p class="discipline" id="txt-discipline">
-        Arquitectura &amp; Ingeniería Civil
-      </p>
-
-      <div class="divider" aria-hidden="true"></div>
-
+    <!-- Headline -->
+    <div class="headline-wrap reveal-up" style="--delay: 0.55s">
       <h1 class="headline" id="txt-headline">
-        Próximamente
+        <span class="word" id="word-1">Próximamente</span>
       </h1>
+    </div>
 
-      <p class="body-text" id="txt-body">
-        Estamos construyendo algo con la misma dedicación<br class="br-desktop"/>
-        que ponemos en cada proyecto.
-      </p>
+    <!-- Body text -->
+    <p class="body-text reveal-up" id="txt-body" style="--delay: 0.75s">
+      Estamos construyendo algo con la misma dedicación<br class="br-d" />
+      que ponemos en cada proyecto.
+    </p>
 
-      <p class="scope" id="txt-scope">
-        Trabajo remoto global &nbsp;·&nbsp; Presencial en Argentina
-      </p>
+    <!-- Progress bar -->
+    <div class="progress-wrap reveal-up" style="--delay: 0.9s" aria-hidden="true">
+      <div class="progress-track">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <span class="progress-label" id="txt-progress">En construcción</span>
+    </div>
 
-      <a
-        id="contact-link"
-        class="contact"
-        href="mailto:contacto@bojana.com.ar"
-        aria-label="Contacto por email"
-      >
-        contacto@bojana.com.ar
-      </a>
+    <!-- Contact -->
+    <a id="contact-link" class="contact magnetic reveal-up" href="mailto:contacto@bojana.com.ar" style="--delay: 1.05s" aria-label="Enviar email">
+      <span class="contact-icon">✦</span>
+      <span id="txt-email">contacto@bojana.com.ar</span>
+    </a>
 
-    </section>
+    <!-- Scope -->
+    <p class="scope reveal-up" id="txt-scope" style="--delay: 1.15s">
+      Trabajo remoto global &nbsp;·&nbsp; Presencial en Argentina
+    </p>
 
   </main>
 
+  <!-- Marquee -->
+  <div class="marquee-wrap" aria-hidden="true">
+    <div class="marquee-track" id="marquee-track">
+      <span class="marquee-item">Arquitectura</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Ingeniería Civil</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Diseño</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Construcción</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Global Remote</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Argentina</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Architecture</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Civil Engineering</span>
+      <span class="marquee-sep">◇</span>
+      <!-- duplicated for seamless loop -->
+      <span class="marquee-item">Arquitectura</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Ingeniería Civil</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Diseño</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Construcción</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Global Remote</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Argentina</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Architecture</span>
+      <span class="marquee-sep">◇</span>
+      <span class="marquee-item">Civil Engineering</span>
+      <span class="marquee-sep">◇</span>
+    </div>
+  </div>
+
   <!-- Footer -->
-  <footer class="site-footer" role="contentinfo">
+  <footer class="site-footer">
     <span id="txt-footer">© 2026 Bojana Estudio</span>
+    <span class="footer-dot">·</span>
+    <span>bojana.com.ar</span>
   </footer>
 
   <script src="script.js"></script>
