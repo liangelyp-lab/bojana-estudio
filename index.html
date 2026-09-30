@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>Bojana Estudio — Arquitectura & Ingeniería Civil</title>
+  <meta name="description" content="Bojana Estudio: arquitectura e ingeniería civil. Proyectos remotos a nivel global y presencial en Argentina. Próximamente." />
+  <meta name="keywords" content="arquitectura, ingeniería civil, Argentina, estudio, diseño, construcción" />
+  <meta property="og:title" content="Bojana Estudio" />
+  <meta property="og:description" content="Arquitectura e ingeniería civil. Remoto global · Presencial Argentina." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://bojana.com.ar" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Background architectural drawing -->
+  <div class="bg-drawing" aria-hidden="true">
+    <img src="bg-lines.jpg" alt="" />
+    <div class="bg-overlay"></div>
+  </div>
+
+  <!-- Grid lines overlay -->
+  <div class="grid-overlay" aria-hidden="true"></div>
+
+  <!-- Language toggle -->
+  <button
+    id="lang-toggle"
+    class="lang-toggle"
+    aria-label="Switch language"
+    onclick="toggleLang()"
+  >
+    <span id="lang-label">EN</span>
+  </button>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- Logo -->
+    <header class="logo-wrap" role="banner">
+      <img
+        src="Bojana-Estudio-Logo-White.svg"
+        alt="Bojana Estudio"
+        class="logo"
+        id="site-logo"
+      />
+    </header>
+
+    <!-- Tagline -->
+    <section class="content" aria-label="Presentación">
+
+      <p class="discipline" id="txt-discipline">
+        Arquitectura &amp; Ingeniería Civil
+      </p>
+
+      <div class="divider" aria-hidden="true"></div>
+
+      <h1 class="headline" id="txt-headline">
+        Próximamente
+      </h1>
+
+      <p class="body-text" id="txt-body">
+        Estamos construyendo algo con la misma dedicación<br class="br-desktop"/>
+        que ponemos en cada proyecto.
+      </p>
+
+      <p class="scope" id="txt-scope">
+        Trabajo remoto global &nbsp;·&nbsp; Presencial en Argentina
+      </p>
+
+      <a
+        id="contact-link"
+        class="contact"
+        href="mailto:contacto@bojana.com.ar"
+        aria-label="Contacto por email"
+      >
+        contacto@bojana.com.ar
+      </a>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <span id="txt-footer">© 2026 Bojana Estudio</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
