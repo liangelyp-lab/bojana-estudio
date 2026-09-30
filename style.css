@@ -326,10 +326,11 @@ h2 {
   width: 100%;
   min-width: 0;
   overflow: hidden;
-  margin-top: 34px;
+  margin: 0;
   border: 0;
   padding: 1rem 0;
-  background: transparent;
+  background: #000;
+  color: #fff;
 }
 .marquee-description {
   position: absolute;
@@ -362,24 +363,21 @@ h2 {
   font-size: 0.95rem;
   font-weight: 300;
   font-style: italic;
-  color: var(--muted);
+  color: inherit;
   white-space: nowrap;
   padding: 0 2rem;
-  transition: color 0.3s ease;
   user-select: none;
 }
-.marquee-item:hover { color: var(--ink); }
 .marquee-sep {
   flex-shrink: 0;
   font-size: 0.5rem;
-  color: var(--muted);
+  color: inherit;
 }
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
 @media (max-width: 760px) {
-  .marquee-wrap { margin-top: 28px; }
   .marquee-item { padding-inline: 1.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
