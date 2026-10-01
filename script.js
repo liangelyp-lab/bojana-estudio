@@ -332,6 +332,9 @@
     let touchY = null;
     let touchX = null;
     let exitKeyHeld = false;
+    let entryFrame = 0;
+    let enteringProject = false;
+    let entryAligned = false;
 
     const trackStart = () => window.scrollY + projectTrack.getBoundingClientRect().top - stickyTop;
     const exitStart = () => trackStart() + travel + extraTravel - entryLead;
@@ -386,6 +389,29 @@
       };
       exitFrame = requestAnimationFrame(slide);
     };
+    const cancelEntry = () => {
+      cancelAnimationFrame(entryFrame);
+      entryFrame = 0;
+      enteringProject = false;
+    };
+    const alignProject = () => {
+      if (enteringProject || entryAligned || exitPending || exiting || performance.now() < bypassUntil) return;
+      const from = window.scrollY;
+      if (from >= trackStart() - .5) { entryAligned = true; return; }
+      enteringProject = true;
+      const started = performance.now();
+      const settle = (now) => {
+        const progress = reducedMotion.matches ? 1 : Math.min(1, (now - started) / 360);
+        const eased = 1 - (1 - progress) ** 3;
+        const to = Math.max(0, Math.min(trackStart(), document.documentElement.scrollHeight - window.innerHeight));
+        // Continue the horizontal motion while gently settling below the header.
+        window.scrollTo({ top: Math.max(window.scrollY, from + (to - from) * eased), behavior: 'instant' });
+        previousY = window.scrollY;
+        if (progress < 1) entryFrame = requestAnimationFrame(settle);
+        else { entryFrame = 0; enteringProject = false; entryAligned = true; }
+      };
+      entryFrame = requestAnimationFrame(settle);
+    };
     const animatePhotos = (now) => {
       const dt = previousPhotoTime ? Math.min(64, now - previousPhotoTime) : 16;
       previousPhotoTime = now;
@@ -423,6 +449,11 @@
       const y = window.scrollY;
       const downward = y > previousY;
       previousY = y;
+      if (!enteringProject) {
+        if (y < trackStart() - entryLead - 1) entryAligned = false;
+        else if (y >= trackStart() - .5) entryAligned = true;
+        else if (downward && y >= trackStart() - entryLead * .72) alignProject();
+      }
       if (y < exitStart() - 1 && !exitPending && !exiting) enteredStudio = false;
       if (downward && !enteredStudio && !exitPending && !exiting
         && performance.now() >= bypassUntil && y >= exitStart() - .5) requestExit();
@@ -434,7 +465,8 @@
       const now = performance.now();
       if (now - lastWheelAt > 140) wheelSequence++;
       lastWheelAt = now;
-      if (event.deltaY < 0) { cancelExit(); return; }
+      if (event.deltaY < 0) { cancelEntry(); cancelExit(); return; }
+      if (enteringProject) { event.preventDefault(); return; }
       if (exitPending || exiting) {
         exitWheelSequence = wheelSequence;
         event.preventDefault();
@@ -466,7 +498,8 @@
       touchY = nextY;
       touchX = nextX;
       if (Math.abs(down) <= Math.abs(across)) return;
-      if (down < 0) { cancelExit(); return; }
+      if (down < 0) { cancelEntry(); cancelExit(); return; }
+      if (enteringProject) { if (event.cancelable) event.preventDefault(); return; }
       const y = window.scrollY;
       const crossing = !enteredStudio && performance.now() >= bypassUntil
         && y >= trackStart() - entryLead && y < exitStart() && y + down >= exitStart();
@@ -484,12 +517,13 @@
         || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
       if (['Escape', 'Home', 'End', 'ArrowUp', 'PageUp'].includes(event.key)
         || (event.key === ' ' && event.shiftKey)) {
+        cancelEntry();
         cancelExit();
         if (event.key === 'End') enteredStudio = true;
         return;
       }
       if (!['ArrowDown', 'PageDown', ' '].includes(event.key)) return;
-      if (exitPending || exiting || (exitKeyHeld && event.repeat && atStudio())) {
+      if (enteringProject || exitPending || exiting || (exitKeyHeld && event.repeat && atStudio())) {
         event.preventDefault();
         return;
       }
@@ -505,6 +539,7 @@
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) exitKeyHeld = false;
     });
     document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
+      cancelEntry();
       cancelExit();
       bypassUntil = performance.now() + 1600;
       enteredStudio = link.getAttribute('href') !== '#proyectos';
@@ -536,9 +571,11 @@
     window.addEventListener('pageshow', () => {
       measure();
       previousY = window.scrollY;
+      entryAligned = window.scrollY >= trackStart() - .5;
       enteredStudio = studioSection && window.scrollY >= studioTarget() - 1;
     });
     window.addEventListener('pagehide', () => {
+      cancelEntry();
       cancelExit();
       cancelAnimationFrame(photoFrame);
       cancelAnimationFrame(resizeFrame);
