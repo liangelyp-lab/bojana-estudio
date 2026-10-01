@@ -524,13 +524,8 @@
       entryLead = Math.min(160, cardHeight * .18);
       projectTrack.style.minHeight = Math.ceil(cardHeight + travel + extraTravel - entryLead) + 'px';
 
-      // Retain enough page height for Studio to reach the header on tall screens.
-      if (studioSection) {
-        const studioTop = window.scrollY + studioSection.getBoundingClientRect().top;
-        const remaining = document.documentElement.scrollHeight - studioTop;
-        const needed = window.innerHeight - stickyTop - remaining;
-        if (needed > 0) studioSection.style.minHeight = studioSection.getBoundingClientRect().height + needed + 'px';
-      }
+      // Studio fills the visible screen when the exit reaches the header.
+      if (studioSection) studioSection.style.minHeight = cardHeight + 'px';
       if (exitPending) target = travel + extraTravel;
       updatePhotos();
     };
