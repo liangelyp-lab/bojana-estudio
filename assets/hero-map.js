@@ -387,9 +387,10 @@
         window.cancelAnimationFrame(frame);
         root.classList.add('hero-map-reset');
         root.classList.toggle('hero-map-no-motion', reduce.matches);
-        surface.setAttribute('data-hero-map-phase', 'drawing');
-        elapsed = reduce.matches ? duration : 0;
-        started = performance.now();
+        surface.setAttribute('data-hero-map-phase', 'positioned');
+        // Empezar con el plano ya ubicado, antes de elevar los bloques.
+        elapsed = reduce.matches ? duration : settleTime;
+        started = performance.now() - elapsed;
         measure();
         void surface.getBoundingClientRect();
         root.classList.remove('hero-map-reset');
