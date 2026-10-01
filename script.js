@@ -324,7 +324,8 @@
       const y = window.scrollY;
       if (y >= start - 3 && y <= end + 3) return true;
       // Catch an incoming gesture before a large delta can skip the gallery.
-      return direction > 0 && y < start && y + amount >= start;
+      return (direction > 0 && y < start && y + amount >= start)
+        || (direction < 0 && y > end && y - amount <= end);
     };
     const advance = (direction) => {
       if (motion || performance.now() < readyAt) return;
@@ -332,6 +333,9 @@
       if (window.scrollY < start - 3) {
         setFrame(0);
         moveTo(trackStart, 650);
+      } else if (direction < 0 && window.scrollY > trackEnd() + 3) {
+        setFrame(frames.length - 1);
+        moveTo(trackEnd, 650);
       } else if (direction > 0 && currentFrame === frames.length - 1 && studioSection) {
         // Ensure tall viewports still allow the section to reach the header.
         const top = window.scrollY + studioSection.getBoundingClientRect().top;
