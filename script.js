@@ -559,8 +559,18 @@
       entryLead = Math.min(160, cardHeight * .18);
       projectTrack.style.minHeight = Math.ceil(cardHeight + travel + extraTravel - entryLead) + 'px';
 
-      // Studio fills the visible screen when the exit reaches the header.
-      if (studioSection) studioSection.style.minHeight = cardHeight + 'px';
+      // Keep Studio at its content height, with the ticker immediately below.
+      // Only add the missing scroll room inside the contact backdrop.
+      if (studioSection) {
+        studioSection.style.minHeight = '';
+        const contact = document.querySelector('#contacto');
+        if (contact && !contact.classList.contains('is-form-open')) {
+          const reserved = parseFloat(contact.style.getPropertyValue('--studio-scroll-room')) || 0;
+          const studioTop = window.scrollY + studioSection.getBoundingClientRect().top;
+          const remaining = document.documentElement.scrollHeight - studioTop - reserved;
+          contact.style.setProperty('--studio-scroll-room', Math.max(0, cardHeight - remaining) + 'px');
+        }
+      }
       if (exitPending) target = travel + extraTravel;
       updatePhotos();
     };

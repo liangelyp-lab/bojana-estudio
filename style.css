@@ -720,6 +720,10 @@ section[id] { scroll-margin-top: 96px; }
 }
 
 
+.contact-section:not(.is-form-open) {
+  padding-block: calc(60px + var(--studio-scroll-room, 0px) / 2);
+}
+
 /* Los Alisos: full-width photos, vertical scroll and a separate exit gesture. */
 #proyectos {
   --project-sticky-top: 59px;
