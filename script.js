@@ -230,117 +230,34 @@
   const galleryStage = projectTrack?.querySelector('.gallery-stage');
   const frames = [...document.querySelectorAll('.gallery-frame')];
   const captions = [...document.querySelectorAll('.gallery-option')];
+  const studioSection = document.querySelector('#estudio');
   if (projectTrack && projectCard && galleryStage && frames.length) {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let currentFrame = -1;
-    let galleryFramePending = false;
     let stickyTop = 84;
-    let scrollDistance = 1;
-    const studioSection = document.querySelector('#estudio');
-    let finalFrameShownAt = 0;
-    let transitionFrame = 0;
-    let transitioningToStudio = false;
-    const cancelStudioTransition = () => {
-      cancelAnimationFrame(transitionFrame);
-      transitionFrame = 0;
-      transitioningToStudio = false;
-    };
-    const canAdvanceToStudio = () => {
-      if (!studioSection || currentFrame !== frames.length - 1 || performance.now() - finalFrameShownAt < 350) return false;
-      const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-      return projectTrack.getBoundingClientRect().top <= stickyTop
-        && projectCard.getBoundingClientRect().bottom > headerBottom
-        && studioSection.getBoundingClientRect().top > headerBottom + 2;
-    };
-    const advanceToStudio = () => {
-      const startY = window.scrollY;
-      const headerBottom = header ? header.getBoundingClientRect().bottom : 0;
-      const studioTop = startY + studioSection.getBoundingClientRect().top;
-      // Keep enough scroll room for the section to reach the header on tall screens.
-      const missingRoom = window.innerHeight - headerBottom + 24 - (document.documentElement.scrollHeight - studioTop);
-      if (missingRoom > 0) studioSection.style.minHeight = studioSection.offsetHeight + missingRoom + 'px';
-      const targetY = Math.max(0, Math.min(
-        studioTop - headerBottom,
-        document.documentElement.scrollHeight - window.innerHeight
-      ));
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        window.scrollTo({ top: targetY, behavior: 'instant' });
-        return;
-      }
-      transitioningToStudio = true;
-      const startedAt = performance.now();
-      const slide = (now) => {
-        const progress = Math.min(1, (now - startedAt) / 850);
-        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
-        window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
-        if (progress < 1) transitionFrame = requestAnimationFrame(slide);
-        else cancelStudioTransition();
-      };
-      transitionFrame = requestAnimationFrame(slide);
-    };
-    if (studioSection) {
-      let lastWheelAt = -Infinity;
-      window.addEventListener('wheel', (event) => {
-        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-        const now = performance.now();
-        const newGesture = now - lastWheelAt > 180;
-        lastWheelAt = now;
-        if (event.deltaY < 0) {
-          cancelStudioTransition();
-          return;
-        }
-        if (transitioningToStudio) event.preventDefault();
-        else if (newGesture && canAdvanceToStudio()) {
-          event.preventDefault();
-          advanceToStudio();
-        }
-      }, { passive: false });
+    let stepDistance = 1;
+    let motion = null;
+    let animationFrame = 0;
+    let updatePending = false;
+    let readyAt = 0;
+    let lastWheelAt = -Infinity;
+    let wheelConsumed = false;
+    let wheelAmount = 0;
+    let wheelDirection = 0;
+    let touchY = null;
+    let touchX = null;
+    let touchConsumed = false;
+    let measuredWidth = 0;
+    let measuredHeight = 0;
+    let resizeTimer;
 
-      let touchStartY = null;
-      let touchCanAdvance = false;
-      window.addEventListener('touchstart', (event) => {
-        cancelStudioTransition();
-        touchStartY = event.touches.length === 1 ? event.touches[0].clientY : null;
-        touchCanAdvance = touchStartY !== null && canAdvanceToStudio();
-      }, { passive: true });
-      window.addEventListener('touchmove', (event) => {
-        if (event.defaultPrevented || touchStartY === null || event.touches.length !== 1) return;
-        const distance = touchStartY - event.touches[0].clientY;
-        if (distance < -12) {
-          touchCanAdvance = false;
-          cancelStudioTransition();
-        } else if (event.cancelable && distance > 24 && (transitioningToStudio || touchCanAdvance)) {
-          event.preventDefault();
-          if (!transitioningToStudio) advanceToStudio();
-          touchCanAdvance = false;
-        }
-      }, { passive: false });
-      window.addEventListener('touchend', () => { touchStartY = null; touchCanAdvance = false; }, { passive: true });
-      window.addEventListener('touchcancel', () => { touchStartY = null; touchCanAdvance = false; }, { passive: true });
-
-      window.addEventListener('keydown', (event) => {
-        if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
-        if (['ArrowUp', 'PageUp', 'Home', 'End', 'Escape'].includes(event.key) || (event.key === ' ' && event.shiftKey)) {
-          cancelStudioTransition();
-          return;
-        }
-        if (!['ArrowDown', 'PageDown', ' '].includes(event.key)) return;
-        if (transitioningToStudio) event.preventDefault();
-        else if (!event.repeat && canAdvanceToStudio()) {
-          event.preventDefault();
-          advanceToStudio();
-        }
-      });
-      document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', cancelStudioTransition));
-      window.addEventListener('resize', cancelStudioTransition);
-      window.addEventListener('pagehide', cancelStudioTransition);
-    }
-    const updateGallery = () => {
-      galleryFramePending = false;
-      const progress = Math.max(0, Math.min(1, (stickyTop - projectTrack.getBoundingClientRect().top) / scrollDistance));
-      const index = Math.min(frames.length - 1, Math.floor(progress * frames.length));
+    // The scroll anchors preserve native scrollbar/navigation behavior. Input
+    // gestures advance one anchor, regardless of trackpad momentum or swipe size.
+    const trackStart = () => window.scrollY + projectTrack.getBoundingClientRect().top - stickyTop;
+    const trackEnd = () => trackStart() + stepDistance * (frames.length - 1);
+    const setFrame = (index) => {
       if (index === currentFrame) return;
       currentFrame = index;
-      if (index === frames.length - 1) finalFrameShownAt = performance.now();
       frames.forEach((frame, i) => {
         frame.classList.toggle('active', i === index);
         frame.setAttribute('aria-hidden', String(i !== index));
@@ -351,30 +268,179 @@
         else caption.removeAttribute('aria-current');
       });
     };
-    const scheduleGalleryUpdate = () => {
-      if (!galleryFramePending) {
-        galleryFramePending = true;
+    frames.forEach((frame) => {
+      frame.style.transition = 'opacity 650ms cubic-bezier(.22, 1, .36, 1)';
+    });
+    const updateGallery = () => {
+      updatePending = false;
+      if (motion) return;
+      const distance = window.scrollY - trackStart();
+      setFrame(Math.max(0, Math.min(frames.length - 1,
+        Math.floor((distance + stepDistance * .18) / stepDistance))));
+    };
+    const scheduleUpdate = () => {
+      if (!updatePending) {
+        updatePending = true;
         requestAnimationFrame(updateGallery);
       }
     };
-    const measureGallery = () => {
-      cancelStudioTransition();
-      studioSection?.style.removeProperty('min-height');
-      stickyTop = parseFloat(getComputedStyle(projectTrack).getPropertyValue('--project-sticky-top')) || 84;
-      projectTrack.style.removeProperty('--gallery-max-height');
-      const availableHeight = window.innerHeight - stickyTop - 16;
-      const overflow = projectCard.offsetHeight - availableHeight;
-      if (overflow > 0) {
-        projectTrack.style.setProperty('--gallery-max-height', Math.max(120, galleryStage.offsetHeight - overflow) + 'px');
+    const stopMotion = () => {
+      cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+      motion = null;
+      document.documentElement.style.scrollBehavior = previousScrollBehavior;
+    };
+    let previousScrollBehavior = document.documentElement.style.scrollBehavior;
+    const studioTarget = () => {
+      const headerBottom = header?.getBoundingClientRect().bottom || 0;
+      return window.scrollY + studioSection.getBoundingClientRect().top - headerBottom;
+    };
+    const moveTo = (getTarget, duration) => {
+      const startY = window.scrollY;
+      const startedAt = performance.now();
+      previousScrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = 'auto';
+      motion = { getTarget };
+      readyAt = startedAt + (reducedMotion.matches ? 250 : duration + 260);
+      const slide = (now) => {
+        if (!motion) return;
+        const targetY = Math.max(0, Math.min(getTarget(), document.documentElement.scrollHeight - window.innerHeight));
+        const progress = reducedMotion.matches ? 1 : Math.min(1, (now - startedAt) / duration);
+        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+        window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
+        if (progress < 1) animationFrame = requestAnimationFrame(slide);
+        else {
+          // Resolve the target again at completion (header/layout can settle).
+          window.scrollTo({ top: Math.max(0, Math.min(getTarget(), document.documentElement.scrollHeight - window.innerHeight)), behavior: 'instant' });
+          stopMotion();
+          updateGallery();
+        }
+      };
+      animationFrame = requestAnimationFrame(slide);
+    };
+    const inGallery = (direction, amount = 0) => {
+      const start = trackStart();
+      const end = trackEnd();
+      const y = window.scrollY;
+      if (y >= start - 3 && y <= end + 3) return true;
+      // Catch an incoming gesture before a large delta can skip the gallery.
+      return direction > 0 && y < start && y + amount >= start;
+    };
+    const advance = (direction) => {
+      if (motion || performance.now() < readyAt) return;
+      const start = trackStart();
+      if (window.scrollY < start - 3) {
+        setFrame(0);
+        moveTo(trackStart, 650);
+      } else if (direction > 0 && currentFrame === frames.length - 1 && studioSection) {
+        // Ensure tall viewports still allow the section to reach the header.
+        const top = window.scrollY + studioSection.getBoundingClientRect().top;
+        const headerBottom = header?.getBoundingClientRect().bottom || 0;
+        const missing = window.innerHeight - headerBottom + 24 - (document.documentElement.scrollHeight - top);
+        if (missing > 0) studioSection.style.minHeight = studioSection.offsetHeight + missing + 'px';
+        moveTo(studioTarget, 1000);
+      } else {
+        const index = Math.max(0, Math.min(frames.length - 1, currentFrame + direction));
+        if (index === currentFrame) return;
+        setFrame(index);
+        moveTo(() => trackStart() + index * stepDistance, 650);
       }
-      scrollDistance = Math.max(240, window.innerHeight * .5) * (frames.length - 1);
-      projectTrack.style.minHeight = projectCard.offsetHeight + scrollDistance + 'px';
+    };
+    window.addEventListener('wheel', (event) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+      const now = performance.now();
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
+      const direction = Math.sign(delta);
+      if (now - lastWheelAt > 220) {
+        wheelConsumed = false;
+        wheelAmount = 0;
+        wheelDirection = direction;
+      }
+      lastWheelAt = now;
+      const captured = motion || wheelConsumed || inGallery(direction, Math.abs(delta));
+      // At the first image scrolling upward leaves the gallery naturally.
+      if (!captured || (!motion && !wheelConsumed && direction < 0 && currentFrame === 0)) return;
+      event.preventDefault();
+      if (motion || now < readyAt || wheelConsumed) {
+        wheelConsumed = true;
+        return;
+      }
+      if (wheelDirection !== direction) wheelAmount = 0;
+      wheelDirection = direction;
+      wheelAmount += Math.abs(delta);
+      if (wheelAmount < 60) return;
+      wheelConsumed = true;
+      advance(direction);
+    }, { passive: false });
+
+    window.addEventListener('touchstart', (event) => {
+      touchY = event.touches.length === 1 ? event.touches[0].clientY : null;
+      touchX = event.touches.length === 1 ? event.touches[0].clientX : null;
+      touchConsumed = false;
+    }, { passive: true });
+    window.addEventListener('touchmove', (event) => {
+      if (event.defaultPrevented || touchY === null || event.touches.length !== 1) return;
+      const distance = touchY - event.touches[0].clientY;
+      const horizontal = touchX - event.touches[0].clientX;
+      if (Math.abs(distance) <= Math.abs(horizontal)) return;
+      const direction = Math.sign(distance);
+      const captured = motion || touchConsumed || inGallery(direction, Math.abs(distance));
+      if (!captured || (!motion && !touchConsumed && direction < 0 && currentFrame === 0)) return;
+      if (!event.cancelable) return;
+      event.preventDefault();
+      if (motion || performance.now() < readyAt) {
+        touchConsumed = true;
+        return;
+      }
+      if (!touchConsumed && Math.abs(distance) >= 42) {
+        touchConsumed = true;
+        advance(direction);
+      }
+    }, { passive: false });
+    const endTouch = () => { touchY = null; touchX = null; };
+    window.addEventListener('touchend', endTouch, { passive: true });
+    window.addEventListener('touchcancel', endTouch, { passive: true });
+
+    window.addEventListener('keydown', (event) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
+      if (['Escape', 'Home', 'End'].includes(event.key)) { stopMotion(); return; }
+      const direction = ['ArrowDown', 'PageDown', ' '].includes(event.key) && !event.shiftKey ? 1
+        : ['ArrowUp', 'PageUp'].includes(event.key) || (event.key === ' ' && event.shiftKey) ? -1 : 0;
+      if (!direction || (!motion && !inGallery(direction))) return;
+      if (!motion && direction < 0 && currentFrame === 0) return;
+      event.preventDefault();
+      if (!event.repeat) advance(direction);
+    });
+    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
+      stopMotion(); readyAt = 0; wheelConsumed = false;
+    }));
+
+    const measureGallery = () => {
+      // Mobile browser chrome changes height while scrolling; keep a running
+      // transition intact and only rebuild geometry after the viewport settles.
+      if (motion) { resizeTimer = setTimeout(measureGallery, 160); return; }
+      measuredWidth = window.innerWidth;
+      measuredHeight = window.innerHeight;
+      studioSection?.style.removeProperty('min-height');
+      stickyTop = Math.max(parseFloat(getComputedStyle(projectTrack).getPropertyValue('--project-sticky-top')) || 84,
+        (header?.getBoundingClientRect().bottom || 0) + 16);
+      projectTrack.style.setProperty('--project-sticky-top', stickyTop + 'px');
+      projectTrack.style.removeProperty('--gallery-max-height');
+      const overflow = projectCard.offsetHeight - (window.innerHeight - stickyTop - 16);
+      if (overflow > 0) projectTrack.style.setProperty('--gallery-max-height', Math.max(120, galleryStage.offsetHeight - overflow) + 'px');
+      stepDistance = Math.max(420, window.innerHeight * .85);
+      projectTrack.style.minHeight = projectCard.offsetHeight + stepDistance * (frames.length - 1) + Math.max(80, window.innerHeight * .15) + 'px';
       projectTrack.classList.add('is-scroll-ready');
       updateGallery();
     };
-    window.addEventListener('scroll', scheduleGalleryUpdate, { passive: true });
-    window.addEventListener('resize', measureGallery);
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', () => {
+      if (window.innerWidth === measuredWidth && Math.abs(window.innerHeight - measuredHeight) < 120) return;
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(measureGallery, 200);
+    });
     window.addEventListener('pageshow', measureGallery);
+    window.addEventListener('pagehide', stopMotion);
     document.fonts?.ready.then(measureGallery);
     measureGallery();
   }
