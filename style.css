@@ -728,6 +728,8 @@ section[id] { scroll-margin-top: 96px; }
 #proyectos {
   --project-sticky-top: 59px;
   --project-viewport-height: calc(100svh - 59px);
+  --project-font-size: .75rem;
+  --project-gutter: max(24px, calc((100% - var(--shell)) / 2));
   width: 100%;
   max-width: none;
   margin-inline: 0;
@@ -755,12 +757,12 @@ section[id] { scroll-margin-top: 96px; }
   flex-shrink: 0;
   gap: clamp(24px, 4vw, 56px);
   min-height: 64px;
-  padding: 18px clamp(24px, 3vw, 48px);
+  padding: 18px var(--project-gutter);
 }
 #proyectos .project-copy h2 {
   flex: 0 0 auto;
   margin: 0;
-  font-size: 20px;
+  font-size: var(--project-font-size);
   line-height: 1.4;
   font-weight: 600;
   letter-spacing: 0;
@@ -768,7 +770,7 @@ section[id] { scroll-margin-top: 96px; }
 #proyectos .project-description {
   margin: 0;
   color: var(--ink);
-  font-size: 20px;
+  font-size: var(--project-font-size);
   line-height: 1.4;
   letter-spacing: 0;
 }
@@ -784,6 +786,7 @@ section[id] { scroll-margin-top: 96px; }
 }
 #proyectos .gallery-rail { display: flex; gap: 3px; height: 100%; will-change: transform; }
 #proyectos .gallery-slide { position: relative; flex: 0 0 100%; height: 100%; margin: 0; overflow: hidden; }
+#proyectos .gallery-slide:first-child { padding-left: var(--project-gutter); }
 #proyectos .gallery-frame {
   position: static;
   inset: auto;
@@ -801,17 +804,15 @@ section[id] { scroll-margin-top: 96px; }
   position: absolute;
   inset: auto 0 0;
   margin: 0;
-  padding: 32px clamp(24px, 3vw, 48px) 18px;
+  padding: 32px calc(var(--project-gutter) + 16px) 18px;
   background: linear-gradient(transparent, rgba(0, 0, 0, .48));
   color: #fff;
-  font-size: 17px;
+  font-size: var(--project-font-size);
   line-height: 1.5;
   font-weight: 500;
   pointer-events: none;
 }
 @media (max-width: 760px) {
-  #proyectos .project-copy { flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px 16px; }
-  #proyectos .project-copy h2 { font-size: 18px; }
-  #proyectos .project-description { font-size: 15px; }
-  #proyectos .gallery-label { padding-inline: 16px; }
+  #proyectos { --project-gutter: 18px; }
+  #proyectos .project-copy { flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px var(--project-gutter); }
 }
