@@ -688,14 +688,14 @@ section[id] { scroll-margin-top: 96px; }
 .hero-animation { width: min(100%, 550px); min-width: 0; justify-self: start; overflow: hidden; background: var(--paper); aspect-ratio: 10 / 9; }
 .hero-animation iframe { display: block; width: 100%; height: 100%; border: 0; }
 
-/* An explicitly opened inquiry fills the viewport below the sticky header. */
+/* The ticker, opened inquiry and complete footer share the viewport. */
 .contact-section.is-form-open {
-  min-height: calc(100vh - var(--contact-header-height, 59px));
-  min-height: calc(100dvh - var(--contact-header-height, 59px));
+  min-height: calc(100vh - var(--contact-header-height, 59px) - var(--contact-ticker-height, 32px) - var(--contact-footer-height, 91px));
+  min-height: calc(100dvh - var(--contact-header-height, 59px) - var(--contact-ticker-height, 32px) - var(--contact-footer-height, 91px));
   display: flex;
   align-items: center;
   padding-block: clamp(28px, 5vh, 64px);
-  scroll-margin-top: var(--contact-header-height, 59px);
+  scroll-margin-top: calc(var(--contact-header-height, 59px) + var(--contact-ticker-height, 32px));
 }
 .contact-section.is-form-open .contact-composition { flex-shrink: 0; }
 .contact-section.is-form-open .contact-form-panel { animation: contact-form-reveal .4s ease-out both; }
@@ -704,10 +704,14 @@ section[id] { scroll-margin-top: 96px; }
   to { opacity: 1; transform: translateY(0); }
 }
 @media (max-width: 480px) {
-  .contact-section.is-form-open { padding-block: 28px; }
-  .contact-section.is-form-open .contact-form-panel { margin-top: 20px; padding-top: 12px; }
+  .contact-section.is-form-open { padding-block: 12px; }
+  .contact-section.is-form-open h2 { font-size: clamp(28px, 7.5vw, 34px); }
+  .contact-section.is-form-open .contact-form-panel { margin-top: 16px; padding-top: 8px; }
+  .contact-section.is-form-open .form-fields { gap: 12px; }
   .contact-section.is-form-open .form-field input,
-  .contact-section.is-form-open .form-field textarea { font-size: 16px; }
+  .contact-section.is-form-open .form-field textarea { font-size: 16px; padding-block: 10px; min-height: 44px; }
+  .contact-section.is-form-open .form-field textarea { height: 84px; }
+  .contact-section.is-form-open .form-submit-row { margin-top: 16px; }
 }
 @media (max-width: 760px) {
   .hero { grid-template-columns: 1fr; gap: 24px; padding-block: 36px; padding-inline: 8px; }

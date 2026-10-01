@@ -151,11 +151,15 @@
   const contactPanel = document.querySelector('#contact-form-panel');
   const inquiryForm = document.querySelector('#inquiry-form');
   if (contactToggle && contactPanel && inquiryForm) {
+    const contactTicker = document.querySelector('.marquee-wrap');
+    const contactFooter = document.querySelector('.footer');
     let contactAnimation = 0;
     let contactScrollBehavior = null;
     const measureContact = () => {
       const headerHeight = header?.getBoundingClientRect().height || 0;
       contactSection.style.setProperty('--contact-header-height', headerHeight + 'px');
+      contactSection.style.setProperty('--contact-ticker-height', (contactTicker?.getBoundingClientRect().height || 0) + 'px');
+      contactSection.style.setProperty('--contact-footer-height', (contactFooter?.getBoundingClientRect().height || 0) + 'px');
     };
     const cancelContactScroll = () => {
       cancelAnimationFrame(contactAnimation);
@@ -179,7 +183,7 @@
           measureContact();
           const headerBottom = header?.getBoundingClientRect().bottom || 0;
           const target = Math.max(0, Math.min(
-            window.scrollY + contactSection.getBoundingClientRect().top - headerBottom,
+            window.scrollY + (contactTicker || contactSection).getBoundingClientRect().top - headerBottom,
             document.documentElement.scrollHeight - window.innerHeight
           ));
           const progress = reduced ? 1 : Math.min(1, (now - startedAt) / 950);
@@ -217,7 +221,10 @@
     window.addEventListener('touchstart', cancelContactScroll, { passive: true });
     window.addEventListener('pagehide', cancelContactScroll);
     window.addEventListener('resize', measureContact);
-    if ('ResizeObserver' in window && header) new ResizeObserver(measureContact).observe(header);
+    if ('ResizeObserver' in window) {
+      const contactLayoutObserver = new ResizeObserver(measureContact);
+      [header, contactTicker, contactFooter].filter(Boolean).forEach((element) => contactLayoutObserver.observe(element));
+    }
     measureContact();
 
     const submitButton = document.querySelector('#inquiry-submit');
