@@ -762,6 +762,7 @@ section[id] { scroll-margin-top: 96px; }
 #proyectos .project-copy h2 {
   flex: 0 0 auto;
   margin: 0;
+  color: var(--line);
   font-size: var(--project-font-size);
   line-height: 1.4;
   font-weight: 600;
@@ -769,7 +770,7 @@ section[id] { scroll-margin-top: 96px; }
 }
 #proyectos .project-description {
   margin: 0;
-  color: var(--ink);
+  color: var(--line);
   font-size: var(--project-font-size);
   line-height: 1.4;
   letter-spacing: 0;
