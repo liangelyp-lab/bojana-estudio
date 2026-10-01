@@ -183,9 +183,9 @@
 
       var width = 0, height = 0, elapsed = 0, frame = 0, started = 0;
       var settleTime = 5760;
-      var cubeStart = settleTime + 1100, cubeDuration = 1200, baseCubeHeight = 6, sectorDelay = 70;
-      var labelStart = cubeStart + cubeDuration + 900 + (sectors.length - 1) * sectorDelay + 120;
-      var duration = labelStart + (zones.length - 1) * 100 + 500;
+      var cubeStart = settleTime + 120, cubeDuration = 650, baseCubeHeight = 6, sectorDelay = 35;
+      var labelStart = cubeStart + cubeDuration + (sectors.length - 1) * sectorDelay + 100;
+      var duration = labelStart + Math.max.apply(null, zones.map(function (zone) { return zone.enter.delay + zone.enter.duration; })) + 100;
       var destination = { left: 0, top: 0, width: 0, height: 0 };
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
       var focusRooms = sectors.filter(function (sector) { return sector.id === 'hab' || sector.id === 'liv'; });
@@ -521,7 +521,7 @@
         setHot(id, false);
       }
       async function loop(signal) {
-        await pause(900, signal);
+        await pause(350, signal);
         var first = true;
         while (!signal.aborted) {
           if (!first) {
