@@ -302,36 +302,24 @@
   const studioSection = document.querySelector('#estudio');
   if (projectTrack && projectCard && galleryStage && rail && slides.length && galleryLabel) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    // Repeat the first photo only as the 30% continuation after Exteriores.
+    const continuation = slides[0].cloneNode(true);
+    continuation.setAttribute('aria-hidden', 'true');
+    rail.appendChild(continuation);
     let stickyTop = 59;
     let travel = 0;
+    let extraTravel = 0;
+    let entryLead = 0;
+    let cardHeight = 1;
     let photoStarts = [];
     let captionIndex = 0;
     let target = 0;
     let rendered = 0;
     let photoFrame = 0;
     let previousPhotoTime = 0;
-    let verticalFrame = 0;
-    let movingToFollowing = false;
-    let holdingEnd = false;
-    let endReachedAt = 0;
-    let lastWheelAt = -Infinity;
-    let wheelSequence = 0;
-    let heldWheelSequence = 0;
-    let wheelAmount = 0;
-    let touchSequence = 0;
-    let heldTouchSequence = 0;
-    let touchY = null;
-    let touchX = null;
-    let visitedFollowing = false;
-    let skipGateUntil = 0;
-    let scrollFrame = 0;
     let resizeFrame = 0;
 
     const trackStart = () => window.scrollY + projectTrack.getBoundingClientRect().top - stickyTop;
-    const trackEnd = () => trackStart() + travel;
-    const studioTarget = () => studioSection
-      ? window.scrollY + studioSection.getBoundingClientRect().top - (header?.getBoundingClientRect().bottom || 0)
-      : trackEnd() + projectCard.offsetHeight;
     const paintPhotos = () => {
       rail.style.transform = 'translate3d(' + (-rendered) + 'px,0,0)';
       let next = 0;
@@ -354,183 +342,53 @@
       else { photoFrame = 0; previousPhotoTime = 0; }
     };
     const updatePhotos = () => {
-      target = Math.max(0, Math.min(travel, window.scrollY - trackStart()));
+      const distance = window.scrollY - trackStart() + entryLead;
+      const end = travel + extraTravel;
+      if (distance <= end) {
+        // Horizontal motion begins before the card reaches the header.
+        target = Math.max(0, distance);
+      } else {
+        // Native vertical scroll reveals Studio while the extra 30% rewinds.
+        const progress = Math.min(1, (distance - end) / cardHeight);
+        target = travel + extraTravel * (1 - progress);
+      }
       if (!photoFrame) photoFrame = requestAnimationFrame(animatePhotos);
     };
-    const leaveEndHold = () => { holdingEnd = false; wheelAmount = 0; };
-    const parkAtEnd = () => {
-      if (!holdingEnd) {
-        holdingEnd = true;
-        endReachedAt = performance.now();
-        heldWheelSequence = wheelSequence;
-        heldTouchSequence = touchSequence;
-        wheelAmount = 0;
-      }
-      window.scrollTo({ top: trackEnd(), behavior: 'instant' });
-      updatePhotos();
-    };
-    const readyToLeave = () => holdingEnd && rendered >= travel - .5
-      && performance.now() - endReachedAt >= 180;
-    const atExit = () => window.scrollY >= trackEnd() - .5 && window.scrollY < studioTarget() - 1;
-    const stopVertical = () => {
-      cancelAnimationFrame(verticalFrame);
-      verticalFrame = 0;
-      movingToFollowing = false;
-    };
-    const revealFollowing = () => {
-      if (!studioSection || movingToFollowing || window.scrollY >= studioTarget() - 1) return;
-      movingToFollowing = true;
-      visitedFollowing = true;
-      cancelAnimationFrame(photoFrame);
-      photoFrame = 0;
-      previousPhotoTime = 0;
-      target = rendered = travel;
-      paintPhotos();
-      // Preserve the existing ability to align Studio below the header even
-      // when the remaining page is shorter than a tall desktop viewport.
-      const studioTop = window.scrollY + studioSection.getBoundingClientRect().top;
-      const remaining = document.documentElement.scrollHeight - studioTop;
-      const needed = window.innerHeight - (header?.getBoundingClientRect().bottom || 0) - remaining;
-      if (needed > 0) studioSection.style.minHeight = studioSection.offsetHeight + needed + 'px';
-      const from = window.scrollY;
-      const started = performance.now();
-      const slide = (now) => {
-        const to = Math.max(0, Math.min(studioTarget(), document.documentElement.scrollHeight - window.innerHeight));
-        const progress = reducedMotion.matches ? 1 : Math.min(1, (now - started) / 650);
-        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
-        window.scrollTo({ top: from + (to - from) * eased, behavior: 'instant' });
-        if (progress < 1) verticalFrame = requestAnimationFrame(slide);
-        else {
-          window.scrollTo({ top: to, behavior: 'instant' });
-          stopVertical();
-        }
-      };
-      verticalFrame = requestAnimationFrame(slide);
-    };
-    const onScroll = () => {
-      scrollFrame = 0;
-      const y = window.scrollY;
-      if (y < trackEnd() - .5) {
-        leaveEndHold();
-        visitedFollowing = false;
-      } else if (!movingToFollowing && !visitedFollowing && performance.now() >= skipGateUntil
-        && atExit() && (!holdingEnd || y > trackEnd() + .5)) parkAtEnd();
-      updatePhotos();
-    };
-    const scheduleScroll = () => {
-      // Clamp the final pause in the scroll event, before sticky can release.
-      if (!movingToFollowing && !visitedFollowing && performance.now() >= skipGateUntil && atExit()) {
-        cancelAnimationFrame(scrollFrame);
-        onScroll();
-      } else if (!scrollFrame) scrollFrame = requestAnimationFrame(onScroll);
-    };
-    window.addEventListener('scroll', scheduleScroll, { passive: true });
-    window.addEventListener('wheel', (event) => {
-      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey
-        || Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-      skipGateUntil = 0;
-      const now = performance.now();
-      if (now - lastWheelAt > 160) { wheelSequence++; wheelAmount = 0; }
-      lastWheelAt = now;
-      if (movingToFollowing) {
-        if (event.deltaY < 0) stopVertical();
-        else event.preventDefault();
-        return;
-      }
-      if (event.deltaY < 0) { leaveEndHold(); return; }
-      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
-      const y = window.scrollY;
-      if (y >= trackStart() - 1 && y < trackEnd() - .5 && y + delta >= trackEnd()) {
-        event.preventDefault();
-        visitedFollowing = false;
-        parkAtEnd();
-        return;
-      }
-      if (atExit()) {
-        event.preventDefault();
-        if (!holdingEnd) { visitedFollowing = false; parkAtEnd(); return; }
-        if (wheelSequence <= heldWheelSequence || !readyToLeave()) return;
-        wheelAmount += delta;
-        if (wheelAmount >= 32) { leaveEndHold(); revealFollowing(); }
-      }
-    }, { passive: false });
-    window.addEventListener('touchstart', (event) => {
-      skipGateUntil = 0;
-      touchSequence++;
-      touchY = event.touches.length === 1 ? event.touches[0].clientY : null;
-      touchX = event.touches.length === 1 ? event.touches[0].clientX : null;
-    }, { passive: true });
-    window.addEventListener('touchmove', (event) => {
-      if (event.defaultPrevented || touchY === null || event.touches.length !== 1) return;
-      const down = touchY - event.touches[0].clientY;
-      const across = touchX - event.touches[0].clientX;
-      if (Math.abs(down) <= Math.abs(across)) return;
-      if (down < -10) {
-        if (movingToFollowing) stopVertical();
-        leaveEndHold();
-        return;
-      }
-      if (down > 20 && (movingToFollowing || atExit())) {
-        if (!event.cancelable) return;
-        event.preventDefault();
-        if (movingToFollowing) return;
-        if (!holdingEnd) { visitedFollowing = false; parkAtEnd(); return; }
-        if (touchSequence > heldTouchSequence && readyToLeave()) {
-          leaveEndHold();
-          revealFollowing();
-        }
-      }
-    }, { passive: false });
-    const endTouch = () => { touchY = null; touchX = null; };
-    window.addEventListener('touchend', endTouch, { passive: true });
-    window.addEventListener('touchcancel', endTouch, { passive: true });
-    window.addEventListener('keydown', (event) => {
-      if (event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey
-        || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
-      skipGateUntil = 0;
-      if (['Escape', 'Home', 'End', 'ArrowUp', 'PageUp'].includes(event.key)) {
-        stopVertical();
-        leaveEndHold();
-        if (event.key === 'End') visitedFollowing = true;
-        return;
-      }
-      if (['ArrowDown', 'PageDown', ' '].includes(event.key) && !event.shiftKey && atExit()) {
-        event.preventDefault();
-        if (!holdingEnd) { visitedFollowing = false; parkAtEnd(); }
-        else if (!event.repeat && readyToLeave()) { leaveEndHold(); revealFollowing(); }
-      }
-    });
-    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
-      stopVertical();
-      leaveEndHold();
-      // Anchor navigation and the existing Contact alignment bypass the pause.
-      skipGateUntil = performance.now() + 1600;
-      visitedFollowing = link.getAttribute('href') !== '#proyectos';
-    }));
+    window.addEventListener('scroll', updatePhotos, { passive: true });
+
     const measure = () => {
       resizeFrame = 0;
       stickyTop = Math.max(0, header?.getBoundingClientRect().bottom || 0);
       projectSection.style.setProperty('--project-sticky-top', stickyTop + 'px');
       projectSection.style.setProperty('--project-viewport-height', Math.max(160, window.innerHeight - stickyTop) + 'px');
-      travel = Math.max(0, rail.scrollWidth - galleryStage.clientWidth);
+      const width = galleryStage.getBoundingClientRect().width;
       photoStarts = slides.map((item) => item.offsetLeft - slides[0].offsetLeft);
-      projectTrack.style.minHeight = Math.ceil(projectCard.getBoundingClientRect().height + travel) + 'px';
+      travel = photoStarts.at(-1) || 0;
+      const gap = Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - width);
+      extraTravel = width * .3 + gap;
+      cardHeight = projectCard.getBoundingClientRect().height;
+      entryLead = Math.min(160, cardHeight * .18);
+      projectTrack.style.minHeight = Math.ceil(cardHeight + travel + extraTravel - entryLead) + 'px';
+
+      // Retain enough page height for Studio to reach the header on tall screens.
+      if (studioSection) {
+        const studioTop = window.scrollY + studioSection.getBoundingClientRect().top;
+        const remaining = document.documentElement.scrollHeight - studioTop;
+        const needed = window.innerHeight - stickyTop - remaining;
+        if (needed > 0) studioSection.style.minHeight = studioSection.getBoundingClientRect().height + needed + 'px';
+      }
       updatePhotos();
     };
     const scheduleMeasure = () => {
       if (!resizeFrame) resizeFrame = requestAnimationFrame(measure);
     };
     window.addEventListener('resize', scheduleMeasure);
-    window.addEventListener('pageshow', () => {
-      measure();
-      if (window.scrollY >= studioTarget() - 1) visitedFollowing = true;
-    });
+    window.addEventListener('pageshow', measure);
     window.addEventListener('pagehide', () => {
-      stopVertical();
       cancelAnimationFrame(photoFrame);
-      cancelAnimationFrame(scrollFrame);
       cancelAnimationFrame(resizeFrame);
-      photoFrame = scrollFrame = resizeFrame = 0;
+      photoFrame = resizeFrame = 0;
+      previousPhotoTime = 0;
     });
     if ('ResizeObserver' in window) {
       const layoutObserver = new ResizeObserver(scheduleMeasure);
