@@ -1,0 +1,29 @@
+/* Approved hero map. All styles stay inside the existing hero. */
+#inicio { position: relative; isolation: isolate; overflow: clip; }
+#inicio .hero-main { position: relative; z-index: 2; }
+#inicio .hero-animation { position: relative; z-index: 2; overflow: visible; background: transparent; pointer-events: none; }
+#hero-plan { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; overflow: visible; pointer-events: none; transition: opacity .5s; --plan-stroke: #0a0a0a; --ink: #0a0a0a; }
+#hero-plan.tour-faded { opacity: 0; }
+#hero-plane-lines, #hero-volume-surfaces, #hero-volume-edges { transition: opacity .5s; }
+#hero-plan .plan-line { fill: none; stroke: var(--plan-stroke); stroke-width: .4; stroke-linecap: butt; stroke-linejoin: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+#hero-plan .cube-top, #hero-plan .cube-side { fill: rgba(10,10,10,0); stroke: none; transition: fill .3s ease; pointer-events: inherit; cursor: pointer; }
+#hero-plan .cube.hover .cube-top, #hero-plan .cube.hover .cube-side, #hero-plan .cube.hot .cube-top, #hero-plan .cube.hot .cube-side, #hero-plan .cube:hover .cube-top, #hero-plan .cube:hover .cube-side { fill: rgba(10,10,10,.065); }
+#hero-plan .cube-edge { fill: none; stroke: var(--plan-stroke); stroke-width: .4; stroke-linecap: butt; stroke-linejoin: round; vector-effect: non-scaling-stroke; opacity: 0; pointer-events: none; transition: stroke .3s ease; }
+#hero-plan .cube-edge.hot { stroke: var(--ink); }
+#hero-plan .zone-label { opacity: 0; pointer-events: all; cursor: pointer; }
+#hero-plan .zone-leader { fill: none; stroke: var(--plan-stroke); stroke-width: .4; vector-effect: non-scaling-stroke; opacity: .35; }
+#hero-plan .zone-label rect { fill: #fff; stroke: rgba(10,10,10,.22); stroke-width: .4; vector-effect: non-scaling-stroke; transition: fill .2s, stroke .2s; }
+#hero-plan .zone-label text { font-family: inherit; font-weight: 600; letter-spacing: .10em; fill: #0a0a0a; transition: fill .2s; }
+#hero-plan .zone-label:hover rect, #hero-plan .zone-label:active rect, #hero-plan .zone-label.hover rect, #hero-plan .zone-label.hot rect { fill: #0a0a0a; stroke: #0a0a0a; }
+#hero-plan .zone-label:hover text, #hero-plan .zone-label:active text, #hero-plan .zone-label.hover text, #hero-plan .zone-label.hot text { fill: #fff; }
+#hero-plan.focus .zone-label:not(.hot) { opacity: 0 !important; pointer-events: none; }
+#hero-map-pop { position: absolute; z-index: 6; left: 17%; top: 10%; width: 66%; padding: 9px; border: 1px solid rgba(10,10,10,.45); border-radius: 22px; background: #fff; box-shadow: 0 24px 60px rgba(0,0,0,.18); opacity: 0; pointer-events: none; will-change: transform; }
+#hero-map-pop .hero-map-photo { aspect-ratio: 4 / 3; overflow: hidden; border-radius: 14px; background: #eee; }
+#hero-map-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+#hero-map-cur { position: absolute; left: 0; top: 0; z-index: 9; opacity: 0; pointer-events: none; }
+#hero-map-ring { position: absolute; z-index: 8; width: 44px; height: 44px; margin: -22px 0 0 -22px; border: 1px solid #0a0a0a; border-radius: 50%; opacity: 0; pointer-events: none; }
+#hero-map-ring.p { animation: hero-map-click .7s ease-out; }
+@keyframes hero-map-click { from { transform: scale(.15); opacity: .9; } to { transform: scale(1); opacity: 0; } }
+#hero-animation-stage .heart { position: absolute; z-index: 10; width: 28px; height: 28px; margin: -14px 0 0 -14px; pointer-events: none; filter: drop-shadow(0 2px 8px rgba(255,59,92,.6)); }
+#inicio.hero-map-reset #hero-plan, #inicio.hero-map-reset #hero-plan *, #inicio.hero-map-no-motion #hero-plan, #inicio.hero-map-no-motion #hero-plan * { transition: none !important; }
+@media (max-width: 760px) { #hero-map-pop { left: 20%; top: 6%; width: 60%; padding: 6px; } }

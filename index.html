@@ -14,6 +14,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300..400&amp;display=swap" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="assets/hero-map.css" />
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -40,6 +41,11 @@
 
   <main id="contenido">
     <section id="inicio" class="hero shell" aria-labelledby="hero-title">
+      <svg id="hero-plan" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="hero-plan-title hero-plan-description">
+        <title id="hero-plan-title">Plano de Bojana</title>
+        <desc id="hero-plan-description">El plano se dibuja con líneas finas, gira y forma bloques bajos para cada sector. Las etiquetas identifican Patio, Habitación, Cocina, Comedor y Living. El recorrido se acerca a Habitación y Living, muestra sus interiores y vuelve al plano general.</desc>
+        <g id="hero-plane-lines"></g><g id="hero-volume-surfaces"></g><g id="hero-volume-edges"></g><g id="hero-zone-labels"></g>
+      </svg>
       <div class="hero-main">
         <h1 id="hero-title">Donde la ingeniería encuentra la forma.</h1>
         <p class="hero-lead">Desarrollamos proyectos integrando <strong>arquitectura</strong>, <strong>ingeniería civil</strong>, <strong>diseño</strong> y <strong>construcción</strong> desde una misma mirada. La forma, el uso y la resolución técnica se piensan en conjunto.</p>
@@ -49,8 +55,10 @@
           <span><strong>15+ años</strong> de experiencia profesional</span>
         </p>
       </div>
-      <div class="hero-animation">
-        <iframe src="assets/hero-animation.html" title="Animación: del plano a los interiores de habitación y living" sandbox="allow-scripts allow-same-origin" tabindex="-1" loading="eager" referrerpolicy="no-referrer"></iframe>
+      <div class="hero-animation" id="hero-animation-stage">
+        <div id="hero-map-pop"><div class="hero-map-photo"><img id="hero-map-img" alt="" src="assets/hero-bedroom.webp" referrerpolicy="no-referrer" /></div></div>
+        <div id="hero-map-ring"></div>
+        <svg id="hero-map-cur" width="16" height="20" viewBox="0 0 16 20" aria-hidden="true"><path d="M0 0 L0 16 L4.5 12 L7.5 19 L10 18 L7 11 L13 11 Z" fill="#0a0a0a" stroke="#fff" /></svg>
       </div>
     </section>
 
@@ -193,6 +201,7 @@
   </footer>
 
   <script src="script.js"></script>
+  <script src="assets/hero-map.js"></script>
   <script>
     (() => {
       const attachedForm = document.querySelector('#inquiry-form');
