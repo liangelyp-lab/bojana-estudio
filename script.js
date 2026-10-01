@@ -418,7 +418,11 @@
       updatePhotos();
     };
     const scheduleScroll = () => {
-      if (!scrollFrame) scrollFrame = requestAnimationFrame(onScroll);
+      // Clamp the final pause in the scroll event, before sticky can release.
+      if (!movingToFollowing && !visitedFollowing && performance.now() >= skipGateUntil && atExit()) {
+        cancelAnimationFrame(scrollFrame);
+        onScroll();
+      } else if (!scrollFrame) scrollFrame = requestAnimationFrame(onScroll);
     };
     window.addEventListener('scroll', scheduleScroll, { passive: true });
     window.addEventListener('wheel', (event) => {
@@ -510,7 +514,7 @@
       projectSection.style.setProperty('--project-viewport-height', Math.max(160, window.innerHeight - stickyTop) + 'px');
       travel = Math.max(0, rail.scrollWidth - galleryStage.clientWidth);
       photoStarts = slides.map((item) => item.offsetLeft - slides[0].offsetLeft);
-      projectTrack.style.minHeight = projectCard.offsetHeight + travel + 'px';
+      projectTrack.style.minHeight = Math.ceil(projectCard.getBoundingClientRect().height + travel) + 'px';
       updatePhotos();
     };
     const scheduleMeasure = () => {
