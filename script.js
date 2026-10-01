@@ -151,14 +151,74 @@
   const contactPanel = document.querySelector('#contact-form-panel');
   const inquiryForm = document.querySelector('#inquiry-form');
   if (contactToggle && contactPanel && inquiryForm) {
-    contactToggle.addEventListener('click', () => {
+    let contactAnimation = 0;
+    let contactScrollBehavior = null;
+    const measureContact = () => {
+      const headerHeight = header?.getBoundingClientRect().height || 0;
+      contactSection.style.setProperty('--contact-header-height', headerHeight + 'px');
+    };
+    const cancelContactScroll = () => {
+      cancelAnimationFrame(contactAnimation);
+      contactAnimation = 0;
+      if (contactScrollBehavior !== null) {
+        document.documentElement.style.scrollBehavior = contactScrollBehavior;
+        contactScrollBehavior = null;
+      }
+    };
+    const alignContact = (focusField) => {
+      cancelContactScroll();
+      // Start after the click's other listeners have closed the mobile menu
+      // and released any in-progress gallery animation.
+      contactAnimation = requestAnimationFrame(() => {
+        const startY = window.scrollY;
+        const startedAt = performance.now();
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        contactScrollBehavior = document.documentElement.style.scrollBehavior;
+        document.documentElement.style.scrollBehavior = 'auto';
+        const slide = (now) => {
+          measureContact();
+          const headerBottom = header?.getBoundingClientRect().bottom || 0;
+          const target = Math.max(0, Math.min(
+            window.scrollY + contactSection.getBoundingClientRect().top - headerBottom,
+            document.documentElement.scrollHeight - window.innerHeight
+          ));
+          const progress = reduced ? 1 : Math.min(1, (now - startedAt) / 950);
+          const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+          window.scrollTo({ top: startY + (target - startY) * eased, behavior: 'instant' });
+          if (progress < 1) contactAnimation = requestAnimationFrame(slide);
+          else {
+            cancelContactScroll();
+            if (focusField) document.querySelector('#inquiry-name')?.focus({ preventScroll: true });
+          }
+        };
+        contactAnimation = requestAnimationFrame(slide);
+      });
+    };
+    const openContact = (focusField = false) => {
       contactPanel.hidden = false;
       contactToggle.setAttribute('aria-expanded', 'true');
       contactToggle.hidden = true;
-      document.querySelector('#inquiry-name').focus({ preventScroll: true });
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      contactPanel.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
-    });
+      contactSection.classList.add('is-form-open');
+      measureContact();
+      alignContact(focusField);
+    };
+    contactToggle.addEventListener('click', (event) => openContact(event.detail === 0));
+    nav?.querySelectorAll('a[href="#contacto"]').forEach((link) => link.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (window.location.hash !== '#contacto') history.pushState(null, '', '#contacto');
+      openContact(event.detail === 0);
+    }));
+    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
+      if (link.getAttribute('href') !== '#contacto') cancelContactScroll();
+    }));
+    // Scrolling into Contact never opens the form. Once opened, it remains
+    // available when navigating away and returning, retaining any typed values.
+    window.addEventListener('wheel', cancelContactScroll, { passive: true });
+    window.addEventListener('touchstart', cancelContactScroll, { passive: true });
+    window.addEventListener('pagehide', cancelContactScroll);
+    window.addEventListener('resize', measureContact);
+    if ('ResizeObserver' in window && header) new ResizeObserver(measureContact).observe(header);
+    measureContact();
 
     const submitButton = document.querySelector('#inquiry-submit');
     const status = document.querySelector('#inquiry-status');
