@@ -340,7 +340,7 @@
       });
     };
     frames.forEach((frame) => {
-      frame.style.transition = 'opacity 360ms cubic-bezier(.22, 1, .36, 1)';
+      frame.style.transition = 'opacity 260ms cubic-bezier(.22, 1, .36, 1)';
     });
     const updateGallery = () => {
       updatePending = false;
@@ -367,17 +367,18 @@
       const headerBottom = header?.getBoundingClientRect().bottom || 0;
       return window.scrollY + studioSection.getBoundingClientRect().top - headerBottom;
     };
-    const moveTo = (getTarget, duration) => {
+    const moveTo = (getTarget, duration, kind = 'page') => {
       const startY = window.scrollY;
       const startedAt = performance.now();
       previousScrollBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = 'auto';
-      motion = { getTarget };
+      motion = { getTarget, kind };
       const slide = (now) => {
         if (!motion) return;
         const targetY = Math.max(0, Math.min(getTarget(), document.documentElement.scrollHeight - window.innerHeight));
         const progress = reducedMotion.matches ? 1 : Math.min(1, (now - startedAt) / duration);
-        const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
+        const eased = kind === 'gallery' ? 1 - (1 - progress) ** 3
+          : progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
         window.scrollTo({ top: startY + (targetY - startY) * eased, behavior: 'instant' });
         if (progress < 1) animationFrame = requestAnimationFrame(slide);
         else {
@@ -401,8 +402,24 @@
         || (direction < 0 && y > end && y - amount <= end);
     };
     const advance = (direction, amount = window.innerHeight * .65) => {
-      // A second intentional gesture is retained while the first transition
-      // finishes. Momentum within the same gesture never reaches this queue.
+      // A new photo gesture retargets the current animation immediately from
+      // its rendered position, instead of waiting in an animation queue.
+      if (motion?.kind === 'gallery') {
+        stopMotion();
+        const index = Math.max(0, Math.min(frames.length - 1, currentFrame + direction));
+        if (index !== currentFrame) {
+          setFrame(index);
+          moveTo(() => trackStart() + index * stepDistance, 220, 'gallery');
+          return;
+        }
+        if (direction < 0) {
+          const target = Math.max(0, window.scrollY - Math.min(amount, window.innerHeight * .85));
+          moveTo(() => target, 260);
+          return;
+        }
+      }
+      // Preserve gestures during a section transition without interrupting
+      // the final alignment. Photo changes above have no wait or cooldown.
       if (motion) { pendingSteps.push({ direction, amount }); return; }
       const start = trackStart();
       if (direction > 0 && window.scrollY > trackEnd() + 3) {
@@ -410,10 +427,10 @@
         moveTo(() => target, 360);
       } else if (window.scrollY < start - 3) {
         setFrame(0);
-        moveTo(trackStart, 360);
+        moveTo(trackStart, 260, 'gallery');
       } else if (direction < 0 && window.scrollY > trackEnd() + 3) {
         setFrame(frames.length - 1);
-        moveTo(trackEnd, 360);
+        moveTo(trackEnd, 260, 'gallery');
       } else if (direction > 0 && currentFrame === frames.length - 1 && studioSection) {
         // Ensure tall viewports still allow the section to reach the header.
         const top = window.scrollY + studioSection.getBoundingClientRect().top;
@@ -425,7 +442,7 @@
         const index = Math.max(0, Math.min(frames.length - 1, currentFrame + direction));
         if (index === currentFrame) return;
         setFrame(index);
-        moveTo(() => trackStart() + index * stepDistance, 360);
+        moveTo(() => trackStart() + index * stepDistance, 260, 'gallery');
       }
     };
     window.addEventListener('wheel', (event) => {
@@ -437,7 +454,7 @@
       // Wheel events do not expose finger lift or a standardized momentum flag.
       // Recognize a new impulse after a pause, a deliberate direction reversal,
       // or two rising samples after the preceding impulse has decayed.
-      const paused = now - lastWheelAt > 100;
+      const paused = now - lastWheelAt > 80;
       if (wheelPeak >= 40 && magnitude < wheelPeak * .3) wheelHasTail = true;
       wheelRiseCount = wheelHasTail && magnitude >= 12 && magnitude > wheelPrevious * 1.35
         ? wheelRiseCount + 1 : 0;
