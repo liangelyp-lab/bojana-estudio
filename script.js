@@ -299,11 +299,15 @@
     let motion = null;
     let animationFrame = 0;
     let updatePending = false;
-    let readyAt = 0;
+    const pendingSteps = [];
     let lastWheelAt = -Infinity;
     let wheelConsumed = false;
     let wheelAmount = 0;
     let wheelDirection = 0;
+    let wheelPeak = 0;
+    let wheelPrevious = 0;
+    let wheelHasTail = false;
+    let wheelRiseCount = 0;
     let touchY = null;
     let touchX = null;
     let touchConsumed = false;
@@ -329,7 +333,7 @@
       });
     };
     frames.forEach((frame) => {
-      frame.style.transition = 'opacity 650ms cubic-bezier(.22, 1, .36, 1)';
+      frame.style.transition = 'opacity 360ms cubic-bezier(.22, 1, .36, 1)';
     });
     const updateGallery = () => {
       updatePending = false;
@@ -344,11 +348,12 @@
         requestAnimationFrame(updateGallery);
       }
     };
-    const stopMotion = () => {
+    const stopMotion = (discardPending = true) => {
+      if (discardPending) pendingSteps.length = 0;
       cancelAnimationFrame(animationFrame);
       animationFrame = 0;
+      if (motion) document.documentElement.style.scrollBehavior = previousScrollBehavior;
       motion = null;
-      document.documentElement.style.scrollBehavior = previousScrollBehavior;
     };
     let previousScrollBehavior = document.documentElement.style.scrollBehavior;
     const studioTarget = () => {
@@ -361,7 +366,6 @@
       previousScrollBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = 'auto';
       motion = { getTarget };
-      readyAt = startedAt + (reducedMotion.matches ? 250 : duration + 260);
       const slide = (now) => {
         if (!motion) return;
         const targetY = Math.max(0, Math.min(getTarget(), document.documentElement.scrollHeight - window.innerHeight));
@@ -372,8 +376,10 @@
         else {
           // Resolve the target again at completion (header/layout can settle).
           window.scrollTo({ top: Math.max(0, Math.min(getTarget(), document.documentElement.scrollHeight - window.innerHeight)), behavior: 'instant' });
-          stopMotion();
+          stopMotion(false);
           updateGallery();
+          const next = pendingSteps.shift();
+          if (next) advance(next.direction, next.amount);
         }
       };
       animationFrame = requestAnimationFrame(slide);
@@ -387,27 +393,32 @@
       return (direction > 0 && y < start && y + amount >= start)
         || (direction < 0 && y > end && y - amount <= end);
     };
-    const advance = (direction) => {
-      if (motion || performance.now() < readyAt) return;
+    const advance = (direction, amount = window.innerHeight * .65) => {
+      // A second intentional gesture is retained while the first transition
+      // finishes. Momentum within the same gesture never reaches this queue.
+      if (motion) { pendingSteps.push({ direction, amount }); return; }
       const start = trackStart();
-      if (window.scrollY < start - 3) {
+      if (direction > 0 && window.scrollY > trackEnd() + 3) {
+        const target = window.scrollY + Math.min(Math.max(100, amount), window.innerHeight * .85);
+        moveTo(() => target, 360);
+      } else if (window.scrollY < start - 3) {
         setFrame(0);
-        moveTo(trackStart, 650);
+        moveTo(trackStart, 360);
       } else if (direction < 0 && window.scrollY > trackEnd() + 3) {
         setFrame(frames.length - 1);
-        moveTo(trackEnd, 650);
+        moveTo(trackEnd, 360);
       } else if (direction > 0 && currentFrame === frames.length - 1 && studioSection) {
         // Ensure tall viewports still allow the section to reach the header.
         const top = window.scrollY + studioSection.getBoundingClientRect().top;
         const headerBottom = header?.getBoundingClientRect().bottom || 0;
         const missing = window.innerHeight - headerBottom + 24 - (document.documentElement.scrollHeight - top);
         if (missing > 0) studioSection.style.minHeight = studioSection.offsetHeight + missing + 'px';
-        moveTo(studioTarget, 1000);
+        moveTo(studioTarget, 520);
       } else {
         const index = Math.max(0, Math.min(frames.length - 1, currentFrame + direction));
         if (index === currentFrame) return;
         setFrame(index);
-        moveTo(() => trackStart() + index * stepDistance, 650);
+        moveTo(() => trackStart() + index * stepDistance, 360);
       }
     };
     window.addEventListener('wheel', (event) => {
@@ -415,26 +426,38 @@
       const now = performance.now();
       const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
       const direction = Math.sign(delta);
-      if (now - lastWheelAt > 220) {
+      const magnitude = Math.abs(delta);
+      // Wheel events do not expose finger lift or a standardized momentum flag.
+      // Recognize a new impulse after a pause, a deliberate direction reversal,
+      // or two rising samples after the preceding impulse has decayed.
+      const paused = now - lastWheelAt > 100;
+      if (wheelPeak >= 40 && magnitude < wheelPeak * .3) wheelHasTail = true;
+      wheelRiseCount = wheelHasTail && magnitude >= 12 && magnitude > wheelPrevious * 1.35
+        ? wheelRiseCount + 1 : 0;
+      const newImpulse = paused || (direction !== wheelDirection && magnitude >= 20)
+        || (wheelRiseCount >= 2 && magnitude >= 30);
+      if (newImpulse) {
         wheelConsumed = false;
         wheelAmount = 0;
         wheelDirection = direction;
+        wheelPeak = 0;
+        wheelHasTail = false;
+        wheelRiseCount = 0;
       }
+      wheelPeak = Math.max(wheelPeak, magnitude);
+      wheelPrevious = magnitude;
       lastWheelAt = now;
       const captured = motion || wheelConsumed || inGallery(direction, Math.abs(delta));
       // At the first image scrolling upward leaves the gallery naturally.
       if (!captured || (!motion && !wheelConsumed && direction < 0 && currentFrame === 0)) return;
       event.preventDefault();
-      if (motion || now < readyAt || wheelConsumed) {
-        wheelConsumed = true;
-        return;
-      }
+      if (wheelConsumed) return;
       if (wheelDirection !== direction) wheelAmount = 0;
       wheelDirection = direction;
       wheelAmount += Math.abs(delta);
-      if (wheelAmount < 60) return;
+      if (wheelAmount < 40) return;
       wheelConsumed = true;
-      advance(direction);
+      advance(direction, Math.max(wheelAmount, window.innerHeight * .65));
     }, { passive: false });
 
     window.addEventListener('touchstart', (event) => {
@@ -452,11 +475,7 @@
       if (!captured || (!motion && !touchConsumed && direction < 0 && currentFrame === 0)) return;
       if (!event.cancelable) return;
       event.preventDefault();
-      if (motion || performance.now() < readyAt) {
-        touchConsumed = true;
-        return;
-      }
-      if (!touchConsumed && Math.abs(distance) >= 42) {
+      if (!touchConsumed && Math.abs(distance) >= 32) {
         touchConsumed = true;
         advance(direction);
       }
@@ -476,7 +495,7 @@
       if (!event.repeat) advance(direction);
     });
     document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
-      stopMotion(); readyAt = 0; wheelConsumed = false;
+      stopMotion(); wheelConsumed = false;
     }));
 
     const measureGallery = () => {
