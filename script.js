@@ -331,6 +331,7 @@
       currentFrame = index;
       frames.forEach((frame, i) => {
         frame.classList.toggle('active', i === index);
+        frame.style.transform = `translate3d(${(i - index) * 100}%, 0, 0)`;
         frame.setAttribute('aria-hidden', String(i !== index));
       });
       captions.forEach((caption, i) => {
@@ -340,7 +341,7 @@
       });
     };
     frames.forEach((frame) => {
-      frame.style.transition = 'opacity 260ms cubic-bezier(.22, 1, .36, 1)';
+      frame.style.transition = reducedMotion.matches ? 'none' : 'transform 520ms cubic-bezier(.22, 1, .36, 1)';
     });
     const updateGallery = () => {
       updatePending = false;

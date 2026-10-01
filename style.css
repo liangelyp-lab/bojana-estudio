@@ -718,3 +718,17 @@ section[id] { scroll-margin-top: 96px; }
   .hero h1 { font-size: clamp(36px, 9vw, 46px); }
   .hero-animation { width: min(100%, 400px); justify-self: center; }
 }
+
+/* Alisos: horizontal photographic sequence inspired by OFEA. */
+.project-scroll .gallery-frame {
+  opacity: 1;
+  transform: translate3d(100%, 0, 0);
+  transition: transform 520ms cubic-bezier(.22, 1, .36, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.project-scroll .gallery-frame:first-child { transform: translate3d(0, 0, 0); }
+.project-scroll .gallery-frame.active { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .project-scroll .gallery-frame { transition: none !important; }
+}
