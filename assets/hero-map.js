@@ -266,13 +266,18 @@
         var bounds = getBounds(points);
         var left = bounds.x - bounds.width / 2, right = bounds.x + bounds.width / 2;
         var top = bounds.y - bounds.height / 2, bottom = bounds.y + bounds.height / 2;
-        // Se protege el ambiente elegido, sin alejar la cámara para encajar
-        // el perímetro completo: el resto del plano continúa en el mismo SVG.
+        // El ambiente elegido y el extremo derecho quedan dentro del hero.
+        // El resto del plano puede continuar detrás del texto.
         var limits = [destination.width * .015];
         if (left < 0) limits.push((focus.x - margin) / -left);
         if (right > 0) limits.push((width - margin - focus.x) / right);
         if (top < 0) limits.push((focus.y - 84) / -top);
         if (bottom > 0) limits.push((height - margin - focus.y) / bottom);
+        var mapAnchor = focusPoint(camera.point, focusHeight);
+        var mapRight = Math.max.apply(null, vertices.map(function (point) {
+          return focusPoint(point, 0)[0] - mapAnchor[0];
+        }));
+        if (mapRight > 0) limits.push((width - margin - focus.x) / mapRight);
         focus.unit = Math.max(.01, Math.min.apply(null, limits));
       }
       function pathData(points, tilt, elevation, closed) {
@@ -486,6 +491,7 @@
         var sw = stage.clientWidth, zone = labelRecords.find(function (record) { return record.id === id; });
         camera.room = sectors.find(function (sector) { return sector.id === id; });
         camera.point = camera.room.center;
+        measureFocus();
         picture.src = pictures[id];
         picture.alt = label === 'HABITACIÓN' ? 'Habitación de Bojana Estudio' : 'Living de Bojana Estudio';
         surface.setAttribute('data-hero-map-phase', id === 'hab' ? 'visiting-bedroom' : 'visiting-living');
