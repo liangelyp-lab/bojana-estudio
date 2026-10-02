@@ -315,6 +315,7 @@
     let cardHeight = 1;
     let photoSize = 1;
     let cycleLength = 0;
+    let firstPhotoLooped = false;
     let passStart = 0;
     let passLast = 0;
     let galleryReleased = false;
@@ -359,6 +360,11 @@
       projectTrack.style.minHeight = Math.ceil(cardHeight + scrollRoom) + 'px';
     };
     const paintPhotos = () => {
+      // Keep the opening gutter until the full-width copy wraps into the first photo.
+      if (!firstPhotoLooped && cycleLength && rendered >= cycleLength) {
+        firstPhotoLooped = true;
+        slides[0].style.paddingLeft = '0px';
+      }
       const position = photoPosition();
       rail.style.transform = verticalGallery.matches
         ? 'translate3d(0,' + (-position) + 'px,0)'
@@ -626,7 +632,10 @@
       const previousCycle = cycleLength;
       const round = previousCycle ? Math.floor(passLast / previousCycle) : 0;
       photoSize = verticalGallery.matches ? Math.max(1, bounds.height) : width;
-      continuation.style.paddingLeft = getComputedStyle(slides[0]).paddingLeft;
+      continuation.style.paddingLeft = '0px';
+      continuation.style.marginLeft = verticalGallery.matches
+        ? '0px'
+        : -(parseFloat(getComputedStyle(rail).columnGap) || 0) + 'px';
       photoStarts = slides.map((item) => verticalGallery.matches ? item.offsetTop - slides[0].offsetTop : item.offsetLeft - slides[0].offsetLeft);
       travel = photoStarts.at(-1) || 0;
       cycleLength = verticalGallery.matches ? continuation.offsetTop - slides[0].offsetTop : continuation.offsetLeft - slides[0].offsetLeft;
