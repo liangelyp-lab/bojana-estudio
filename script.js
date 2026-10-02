@@ -303,7 +303,7 @@
   if (projectTrack && projectCard && galleryStage && rail && slides.length && galleryLabel) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const verticalGallery = window.matchMedia('(max-width: 760px)');
-    // Repeat the first photo only as the 30% continuation after Exteriores.
+    // The first copy supports the continuation and a seamless forward loop.
     const continuation = slides[0].cloneNode(true);
     continuation.setAttribute('aria-hidden', 'true');
     rail.appendChild(continuation);
@@ -313,6 +313,11 @@
     let entryLead = 0;
     let cardHeight = 1;
     let photoSize = 1;
+    let cycleLength = 0;
+    let passStart = 0;
+    let passLast = 0;
+    let galleryReleased = false;
+    let resumedPass = false;
     let mobileViewportHeight = window.visualViewport?.height || window.innerHeight;
     let photoStarts = [];
     let captionIndex = 0;
@@ -338,19 +343,27 @@
     let entryFrame = 0;
     let enteringProject = false;
     let entryAligned = false;
+    let resumingProject = false;
 
     const trackStart = () => window.scrollY + projectTrack.getBoundingClientRect().top - stickyTop;
-    const exitStart = () => trackStart() + travel + extraTravel - entryLead;
+    const playbackLead = () => resumedPass ? 0 : entryLead;
+    const exitStart = () => trackStart() + passLast - passStart + extraTravel - playbackLead();
     const studioTarget = () => window.scrollY + studioSection.getBoundingClientRect().top
       - (header?.getBoundingClientRect().bottom || 0);
     const atStudio = () => studioSection && Math.abs(window.scrollY - studioTarget()) < 2;
+    const photoPosition = () => cycleLength ? ((rendered % cycleLength) + cycleLength) % cycleLength : rendered;
+    const sizeTrack = () => {
+      const scrollRoom = galleryReleased ? 0 : Math.max(0, passLast - passStart + extraTravel - playbackLead());
+      projectTrack.style.minHeight = Math.ceil(cardHeight + scrollRoom) + 'px';
+    };
     const paintPhotos = () => {
+      const position = photoPosition();
       rail.style.transform = verticalGallery.matches
-        ? 'translate3d(0,' + (-rendered) + 'px,0)'
-        : 'translate3d(' + (-rendered) + 'px,0,0)';
+        ? 'translate3d(0,' + (-position) + 'px,0)'
+        : 'translate3d(' + (-position) + 'px,0,0)';
       let next = 0;
       for (let i = 1; i < photoStarts.length; i++) {
-        if (rendered + .5 >= photoStarts[i]) next = i;
+        if (position + .5 >= photoStarts[i]) next = i;
         else break;
       }
       if (next !== captionIndex) {
@@ -379,7 +392,7 @@
         const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
         const to = Math.max(0, Math.min(studioTarget(), document.documentElement.scrollHeight - window.innerHeight));
         // One animation moves Studio to the header and rewinds the extra 30%.
-        target = rendered = fromX + (travel - fromX) * eased;
+        target = rendered = fromX + (passLast - fromX) * eased;
         paintPhotos();
         window.scrollTo({ top: fromY + (to - fromY) * eased, behavior: 'instant' });
         previousY = window.scrollY;
@@ -388,7 +401,7 @@
           exitFrame = 0;
           exiting = false;
           enteredStudio = true;
-          target = rendered = travel;
+          target = rendered = passLast;
           paintPhotos();
         }
       };
@@ -398,24 +411,64 @@
       cancelAnimationFrame(entryFrame);
       entryFrame = 0;
       enteringProject = false;
+      resumingProject = false;
     };
-    const alignProject = () => {
-      if (enteringProject || entryAligned || exitPending || exiting || performance.now() < bypassUntil) return;
+    const alignProject = (resume = false) => {
+      if (enteringProject || (!resume && entryAligned) || exitPending || exiting || performance.now() < bypassUntil) return;
       const from = window.scrollY;
-      if (from >= trackStart() - .5) { entryAligned = true; return; }
+      if (!resume && from >= trackStart() - .5) { entryAligned = true; return; }
       enteringProject = true;
+      resumingProject = resume;
       const started = performance.now();
       const settle = (now) => {
         const progress = reducedMotion.matches ? 1 : Math.min(1, (now - started) / 360);
         const eased = 1 - (1 - progress) ** 3;
         const to = Math.max(0, Math.min(trackStart(), document.documentElement.scrollHeight - window.innerHeight));
         // Continue the photos while gently settling below the header.
-        window.scrollTo({ top: Math.max(window.scrollY, from + (to - from) * eased), behavior: 'instant' });
+        const next = from + (to - from) * eased;
+        window.scrollTo({ top: resume ? next : Math.max(window.scrollY, next), behavior: 'instant' });
         previousY = window.scrollY;
         if (progress < 1) entryFrame = requestAnimationFrame(settle);
-        else { entryFrame = 0; enteringProject = false; entryAligned = true; }
+        else {
+          entryFrame = 0;
+          enteringProject = resumingProject = false;
+          entryAligned = true;
+          updatePhotos();
+        }
       };
       entryFrame = requestAnimationFrame(settle);
+    };
+    const releaseGallery = () => {
+      cancelEntry();
+      cancelExit();
+      if (galleryReleased) return;
+      cancelAnimationFrame(photoFrame);
+      photoFrame = 0;
+      previousPhotoTime = 0;
+      target = rendered = photoPosition();
+      const y = window.scrollY;
+      const start = trackStart();
+      const scrollRoom = Math.max(0, projectTrack.getBoundingClientRect().height - cardHeight);
+      galleryReleased = true;
+      entryAligned = false;
+      sizeTrack();
+      // Remove the sticky runway while preserving the visible page position.
+      const removed = Math.max(0, Math.min(scrollRoom, y - start));
+      window.scrollTo({ top: Math.max(0, y - removed), behavior: 'instant' });
+      previousY = window.scrollY;
+      paintPhotos();
+    };
+    const resumeGallery = () => {
+      if (!galleryReleased || performance.now() < bypassUntil) return;
+      passStart = target = rendered = photoPosition();
+      // When the last photo was reached, continue into the first copy.
+      passLast = travel + (passStart >= travel - .5 ? cycleLength : 0);
+      galleryReleased = false;
+      resumedPass = true;
+      enteredStudio = false;
+      entryAligned = false;
+      sizeTrack();
+      alignProject(true);
     };
     const animatePhotos = (now) => {
       const dt = previousPhotoTime ? Math.min(64, now - previousPhotoTime) : 16;
@@ -428,32 +481,34 @@
       else { photoFrame = 0; previousPhotoTime = 0; }
     };
     const requestExit = () => {
-      if (!studioSection || exitPending || exiting || performance.now() < bypassUntil) return;
+      if (!studioSection || galleryReleased || exitPending || exiting || performance.now() < bypassUntil) return;
       exitPending = true;
       enteredStudio = false;
       exitWheelSequence = wheelSequence;
       exitTouchSequence = touchSequence;
-      target = travel + extraTravel;
+      target = passLast + extraTravel;
       if (!photoFrame) photoFrame = requestAnimationFrame(animatePhotos);
     };
     const updatePhotos = () => {
-      if (exitPending || exiting) return;
-      const distance = window.scrollY - trackStart() + entryLead;
-      const end = travel + extraTravel;
-      if (distance <= end) {
-        // Photo motion begins before the card reaches the header.
-        target = Math.max(0, distance);
-      } else {
-        // Keep the gallery reversible when scrolling back from Studio.
-        const progress = Math.min(1, (distance - end) / cardHeight);
-        target = travel + extraTravel * (1 - progress);
-      }
+      if (galleryReleased || resumingProject || enteredStudio || exitPending || exiting) return;
+      const distance = window.scrollY - trackStart() + playbackLead();
+      // Only forward page movement advances the remembered photo position.
+      target = passStart + Math.max(0, Math.min(passLast - passStart + extraTravel, distance));
       if (!photoFrame) photoFrame = requestAnimationFrame(animatePhotos);
     };
     window.addEventListener('scroll', () => {
       const y = window.scrollY;
       const downward = y > previousY;
+      const upward = y < previousY;
       previousY = y;
+      if (upward && !galleryReleased && !enteringProject && !exiting) {
+        releaseGallery();
+        return;
+      }
+      if (galleryReleased) {
+        if (downward && y >= trackStart() - entryLead * .72 && y < trackStart() + cardHeight) resumeGallery();
+        return;
+      }
       if (!enteringProject) {
         if (y < trackStart() - entryLead - 1) entryAligned = false;
         else if (y >= trackStart() - .5) entryAligned = true;
@@ -470,7 +525,7 @@
       const now = performance.now();
       if (now - lastWheelAt > 140) wheelSequence++;
       lastWheelAt = now;
-      if (event.deltaY < 0) { cancelEntry(); cancelExit(); return; }
+      if (event.deltaY < 0) { releaseGallery(); return; }
       if (enteringProject) { event.preventDefault(); return; }
       if (exitPending || exiting) {
         exitWheelSequence = wheelSequence;
@@ -483,7 +538,7 @@
       }
       const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
       const y = window.scrollY;
-      if (!enteredStudio && now >= bypassUntil && y >= trackStart() - entryLead
+      if (!galleryReleased && !enteredStudio && now >= bypassUntil && y >= trackStart() - entryLead
         && y < exitStart() && y + delta >= exitStart()) {
         event.preventDefault();
         requestExit();
@@ -503,10 +558,10 @@
       touchY = nextY;
       touchX = nextX;
       if (Math.abs(down) <= Math.abs(across)) return;
-      if (down < 0) { cancelEntry(); cancelExit(); return; }
+      if (down < 0) { releaseGallery(); return; }
       if (enteringProject) { if (event.cancelable) event.preventDefault(); return; }
       const y = window.scrollY;
-      const crossing = !enteredStudio && performance.now() >= bypassUntil
+      const crossing = !galleryReleased && !enteredStudio && performance.now() >= bypassUntil
         && y >= trackStart() - entryLead && y < exitStart() && y + down >= exitStart();
       if (exitPending || exiting || (enteredStudio && touchSequence === exitTouchSequence && atStudio()) || crossing) {
         if (event.cancelable) event.preventDefault();
@@ -522,8 +577,7 @@
         || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
       if (['Escape', 'Home', 'End', 'ArrowUp', 'PageUp'].includes(event.key)
         || (event.key === ' ' && event.shiftKey)) {
-        cancelEntry();
-        cancelExit();
+        releaseGallery();
         if (event.key === 'End') enteredStudio = true;
         return;
       }
@@ -534,7 +588,7 @@
       }
       const y = window.scrollY;
       const amount = event.key === 'ArrowDown' ? 40 : window.innerHeight * .85;
-      if (!enteredStudio && y >= trackStart() - entryLead && y < exitStart() && y + amount >= exitStart()) {
+      if (!galleryReleased && !enteredStudio && y >= trackStart() - entryLead && y < exitStart() && y + amount >= exitStart()) {
         event.preventDefault();
         exitKeyHeld = true;
         requestExit();
@@ -544,8 +598,7 @@
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) exitKeyHeld = false;
     });
     document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
-      cancelEntry();
-      cancelExit();
+      releaseGallery();
       bypassUntil = performance.now() + 1600;
       enteredStudio = link.getAttribute('href') !== '#proyectos';
     }));
@@ -563,14 +616,26 @@
       projectSection.style.setProperty('--project-viewport-height', Math.max(160, viewportHeight - stickyTop) + 'px');
       const bounds = galleryStage.getBoundingClientRect();
       const width = bounds.width;
+      const previousCycle = cycleLength;
+      const round = previousCycle ? Math.floor(passLast / previousCycle) : 0;
       photoSize = verticalGallery.matches ? Math.max(1, bounds.height) : width;
+      continuation.style.paddingLeft = getComputedStyle(slides[0]).paddingLeft;
       photoStarts = slides.map((item) => verticalGallery.matches ? item.offsetTop - slides[0].offsetTop : item.offsetLeft - slides[0].offsetLeft);
       travel = photoStarts.at(-1) || 0;
+      cycleLength = verticalGallery.matches ? continuation.offsetTop - slides[0].offsetTop : continuation.offsetLeft - slides[0].offsetLeft;
+      if (previousCycle) {
+        const scale = cycleLength / previousCycle;
+        passStart *= scale;
+        target *= scale;
+        rendered *= scale;
+      }
+      passLast = round * cycleLength + travel;
       const gap = verticalGallery.matches ? 0 : Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - width);
       extraTravel = photoSize * .3 + gap;
       cardHeight = projectCard.getBoundingClientRect().height;
       entryLead = verticalGallery.matches ? 0 : Math.min(160, cardHeight * .18);
-      projectTrack.style.minHeight = Math.ceil(cardHeight + travel + extraTravel - entryLead) + 'px';
+      sizeTrack();
+      paintPhotos();
 
       // Keep Studio at its content height, with the ticker immediately below.
       // Only add the missing scroll room inside the contact backdrop.
@@ -584,7 +649,7 @@
           contact.style.setProperty('--studio-scroll-room', Math.max(0, cardHeight - remaining) + 'px');
         }
       }
-      if (exitPending) target = travel + extraTravel;
+      if (exitPending) target = passLast + extraTravel;
       updatePhotos();
     };
     const scheduleMeasure = () => {
