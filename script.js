@@ -302,18 +302,18 @@
   const studioSection = document.querySelector('#estudio');
   if (projectTrack && projectCard && galleryStage && rail && slides.length && galleryLabel) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const stackedGallery = window.matchMedia('(max-width: 760px)');
+    const verticalGallery = window.matchMedia('(max-width: 760px)');
     // Repeat the first photo only as the 30% continuation after Exteriores.
     const continuation = slides[0].cloneNode(true);
     continuation.setAttribute('aria-hidden', 'true');
     rail.appendChild(continuation);
-    const gallerySlides = [...slides, continuation];
     let stickyTop = 59;
     let travel = 0;
     let extraTravel = 0;
     let entryLead = 0;
     let cardHeight = 1;
     let photoSize = 1;
+    let mobileViewportHeight = window.visualViewport?.height || window.innerHeight;
     let photoStarts = [];
     let captionIndex = 0;
     let target = 0;
@@ -345,17 +345,9 @@
       - (header?.getBoundingClientRect().bottom || 0);
     const atStudio = () => studioSection && Math.abs(window.scrollY - studioTarget()) < 2;
     const paintPhotos = () => {
-      if (stackedGallery.matches) {
-        rail.style.transform = 'none';
-        gallerySlides.forEach((slide, i) => {
-          // The incoming photo rises over the previous one at full height.
-          const y = Math.max(0, Math.min(photoSize, i * photoSize - rendered));
-          slide.style.transform = 'translate3d(0,' + y + 'px,0)';
-        });
-      } else {
-        rail.style.transform = 'translate3d(' + (-rendered) + 'px,0,0)';
-        gallerySlides.forEach((slide) => { slide.style.transform = ''; });
-      }
+      rail.style.transform = verticalGallery.matches
+        ? 'translate3d(0,' + (-rendered) + 'px,0)'
+        : 'translate3d(' + (-rendered) + 'px,0,0)';
       let next = 0;
       for (let i = 1; i < photoStarts.length; i++) {
         if (rendered + .5 >= photoStarts[i]) next = i;
@@ -561,17 +553,23 @@
     const measure = () => {
       resizeFrame = 0;
       stickyTop = Math.max(0, header?.getBoundingClientRect().bottom || 0);
+      // Keep the gallery stable while the contact keyboard or pinch zoom is open.
+      if (verticalGallery.matches && (window.visualViewport?.scale || 1) === 1
+        && !document.activeElement?.closest('input, textarea, select, [contenteditable]')) {
+        mobileViewportHeight = window.visualViewport?.height || window.innerHeight;
+      }
+      const viewportHeight = verticalGallery.matches ? mobileViewportHeight : window.innerHeight;
       projectSection.style.setProperty('--project-sticky-top', stickyTop + 'px');
-      projectSection.style.setProperty('--project-viewport-height', Math.max(160, window.innerHeight - stickyTop) + 'px');
+      projectSection.style.setProperty('--project-viewport-height', Math.max(160, viewportHeight - stickyTop) + 'px');
       const bounds = galleryStage.getBoundingClientRect();
       const width = bounds.width;
-      photoSize = stackedGallery.matches ? Math.max(1, bounds.height) : width;
-      photoStarts = slides.map((item, i) => stackedGallery.matches ? i * photoSize : item.offsetLeft - slides[0].offsetLeft);
+      photoSize = verticalGallery.matches ? Math.max(1, bounds.height) : width;
+      photoStarts = slides.map((item) => verticalGallery.matches ? item.offsetTop - slides[0].offsetTop : item.offsetLeft - slides[0].offsetLeft);
       travel = photoStarts.at(-1) || 0;
-      const gap = stackedGallery.matches ? 0 : Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - width);
+      const gap = verticalGallery.matches ? 0 : Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - width);
       extraTravel = photoSize * .3 + gap;
       cardHeight = projectCard.getBoundingClientRect().height;
-      entryLead = Math.min(160, cardHeight * .18);
+      entryLead = verticalGallery.matches ? 0 : Math.min(160, cardHeight * .18);
       projectTrack.style.minHeight = Math.ceil(cardHeight + travel + extraTravel - entryLead) + 'px';
 
       // Keep Studio at its content height, with the ticker immediately below.
@@ -593,7 +591,8 @@
       if (!resizeFrame) resizeFrame = requestAnimationFrame(measure);
     };
     window.addEventListener('resize', scheduleMeasure);
-    stackedGallery.addEventListener('change', scheduleMeasure);
+    window.visualViewport?.addEventListener('resize', scheduleMeasure);
+    verticalGallery.addEventListener('change', scheduleMeasure);
     window.addEventListener('pageshow', () => {
       measure();
       previousY = window.scrollY;
