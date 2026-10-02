@@ -763,16 +763,19 @@ section[id] { scroll-margin-top: 96px; }
   flex: 0 0 auto;
   margin: 0;
   color: #b0b0ad;
+  font-family: inherit;
   font-size: 15px;
   line-height: 1.4;
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: 0;
 }
 #proyectos .project-description {
   margin: 0;
   color: #b0b0ad;
+  font-family: inherit;
   font-size: var(--project-font-size);
   line-height: 1.4;
+  font-weight: 400;
   letter-spacing: 0;
 }
 #proyectos .gallery { display: block; flex: 1; width: 100%; min-height: 0; padding: 0; }
