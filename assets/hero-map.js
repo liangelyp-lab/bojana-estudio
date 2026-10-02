@@ -207,7 +207,7 @@
         var topScale = Math.min(width * (mobile ? .64 : .36) / floorBounds.width, height * .60 / floorBounds.height);
         var topX = width * .5 + (point[0] - floorBounds.x) * topScale;
         var topY = height * .55 + (point[1] - floorBounds.y) * topScale;
-        var scale = Math.min(destination.width * .88 / projectedBounds.width, destination.height * .64 / projectedBounds.height);
+        var scale = Math.min(destination.width * .98 / projectedBounds.width, destination.height * .74 / projectedBounds.height);
         var centerX = destination.left + destination.width * .5;
         var centerY = destination.top + destination.height * .48;
         var weight = view[6] * point[0] + view[7] * point[1] + view[8];
@@ -461,6 +461,7 @@
         } catch (error) { if (error.name !== 'AbortError') throw error; }
       }
       function openPop(signal) {
+        svg.classList.add('pop-open');
         var f = stage.clientWidth / 600;
         cancelAnimations(pop);
         cancelAnimations(picture);
@@ -471,7 +472,8 @@
         pictureZoom(signal);
       }
       function closePop() {
-        pop.animate([{ transform: 'scale(1)', opacity: 1 }, { opacity: 1, offset: .7 }, { transform: 'scale(.04)', opacity: 0, borderRadius: '90px' }], { duration: 600, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
+        var closing = pop.animate([{ transform: 'scale(1)', opacity: 1 }, { opacity: 1, offset: .7 }, { transform: 'scale(.04)', opacity: 0, borderRadius: '90px' }], { duration: 600, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
+        closing.onfinish = function () { svg.classList.remove('pop-open'); };
         picture.animate([{ transform: 'scale(1.1)' }, { transform: 'scale(1.9)' }], { duration: 450, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' });
       }
       function heart(x, y) {
@@ -564,7 +566,7 @@
         activeSector = null;
         hoveredSector = null;
         cubeRecords.forEach(function (cube) { cube.element.classList.remove('hot', 'hover'); });
-        svg.classList.remove('focus', 'tour-faded');
+        svg.classList.remove('focus', 'tour-faded', 'pop-open');
         svg.style.clipPath = '';
         ring.classList.remove('p');
         cursor.style.opacity = '0';
