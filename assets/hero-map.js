@@ -59,11 +59,11 @@
         { id: 'aux6', points: [[453,769],[650,769],[650,985],[494,985],[405,915],[453,837]] }
       ];
       var zones = [
-        { id: 'patio', label: 'PATIO', at: [152,560], raised: false, enter: { delay: 75, duration: 160, from: [-2,0] } },
-        { id: 'hab', label: 'HABITACIÓN', raised: true, enter: { delay: 0, duration: 175, from: [0,2] } },
-        { id: 'coc', label: 'COCINA', raised: true, enter: { delay: 160, duration: 150, from: [2,0] } },
-        { id: 'com', label: 'COMEDOR', raised: true, enter: { delay: 230, duration: 185, from: [0,-2] } },
-        { id: 'liv', label: 'LIVING', raised: true, enter: { delay: 310, duration: 165, from: [0,2] } }
+        { id: 'patio', label: 'PATIO', at: [152,560], raised: false, enter: { delay: 55, duration: 225, from: [-2,0] } },
+        { id: 'hab', label: 'HABITACIÓN', raised: true, enter: { delay: 0, duration: 225, from: [0,2] } },
+        { id: 'coc', label: 'COCINA', raised: true, enter: { delay: 95, duration: 225, from: [2,0] } },
+        { id: 'com', label: 'COMEDOR', raised: true, enter: { delay: 140, duration: 225, from: [0,-2] } },
+        { id: 'liv', label: 'LIVING', raised: true, enter: { delay: 185, duration: 225, from: [0,2] } }
       ];
 
       // La geometría procede de la vista superior. La cámara mantiene todos
@@ -183,9 +183,9 @@
 
       var width = 0, height = 0, elapsed = 0, frame = 0, started = 0;
       var drawDuration = 1300;
-      var cubeStart = drawDuration + 120, cubeDuration = 650, baseCubeHeight = 6, sectorDelay = 35;
-      var labelStart = cubeStart + cubeDuration + (sectors.length - 1) * sectorDelay + 100;
-      var duration = labelStart + Math.max.apply(null, zones.map(function (zone) { return zone.enter.delay + zone.enter.duration; })) + 100;
+      var cubeStart = drawDuration + 40, cubeDuration = 420, baseCubeHeight = 6, sectorDelay = 22;
+      var labelStart = cubeStart + cubeDuration + (sectors.length - 1) * sectorDelay - 110;
+      var duration = labelStart + Math.max.apply(null, zones.map(function (zone) { return zone.enter.delay + zone.enter.duration; })) + 75;
       var destination = { left: 0, top: 0, width: 0, height: 0 };
       var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
       var focusRooms = sectors.filter(function (sector) { return sector.id === 'hab' || sector.id === 'liv'; });
@@ -261,17 +261,32 @@
             points.push([q[0] - anchor[0], q[1] - anchor[1]]);
           });
         });
-        var bounds = getBounds(points);
-        var left = bounds.x - bounds.width / 2, right = bounds.x + bounds.width / 2;
-        var top = bounds.y - bounds.height / 2, bottom = bounds.y + bounds.height / 2;
-        // El ambiente ocupa casi el ancho del popup. El zoom se calcula para
-        // cada visita; la vista general conserva su encuadre completo.
-        var limits = [pop.offsetWidth * .94 / bounds.width];
-        if (left < 0) limits.push((focus.x - margin) / -left);
-        if (right > 0) limits.push((width - margin - focus.x) / right);
-        if (top < 0) limits.push((focus.y - 84) / -top);
-        if (bottom > 0) limits.push((height - margin - focus.y) / bottom);
-        focus.unit = Math.max(.01, Math.min.apply(null, limits));
+        var roomBounds = getBounds(points);
+        var framePoints = vertices.map(function (point) {
+          var q = focusPoint(point, 0, room);
+          return [q[0] - anchor[0], q[1] - anchor[1]];
+        });
+        sectors.forEach(function (sector) {
+          sector.floorPoints.forEach(function (point) {
+            var q = focusPoint(point, sector.id === room.id ? focusHeight : baseCubeHeight, room);
+            framePoints.push([q[0] - anchor[0], q[1] - anchor[1]]);
+          });
+        });
+        var bounds = getBounds(framePoints);
+        var heroLeft = surface.getBoundingClientRect().left;
+        var left = margin - heroLeft, right = document.documentElement.clientWidth - heroLeft - margin;
+        var top = margin, bottom = height - margin;
+        // Usar el ancho real de la pantalla, sin recortar en el contenedor.
+        // Primero conservar el zoom del popup y después reubicar el plano
+        // completo; reducir la escala solo si no cabe en la pantalla.
+        focus.unit = Math.max(.01, Math.min(pop.offsetWidth * .94 / roomBounds.width,
+          (right - left) / bounds.width, (bottom - top) / bounds.height));
+        var planLeft = (bounds.x - bounds.width / 2) * focus.unit;
+        var planRight = (bounds.x + bounds.width / 2) * focus.unit;
+        var planTop = (bounds.y - bounds.height / 2) * focus.unit;
+        var planBottom = (bounds.y + bounds.height / 2) * focus.unit;
+        focus.x = Math.max(left - planLeft, Math.min(focus.x, right - planRight));
+        focus.y = Math.max(top - planTop, Math.min(focus.y, bottom - planBottom));
       }
       function pathData(points, tilt, elevation, closed) {
         return points.map(function (point, i) {
@@ -308,7 +323,9 @@
           cube.elevation = elevation;
           cube.top.setAttribute('d', pathData(cube.points, tilt, elevation, true));
           cube.sides.forEach(function (side) { side.element.setAttribute('d', cubeSideData(side.points, tilt, elevation)); });
-          cube.element.style.opacity = String(progress * traceProgress);
+          // Las líneas mantienen su presencia mientras el techo y las
+          // aristas verticales suben desde el piso, sin aparecer por opacidad.
+          cube.element.style.opacity = String(progress > 0 ? traceProgress : 0);
           cube.element.style.pointerEvents = progress > .1 && traceProgress > .5 ? 'all' : 'none';
           cube.element.classList.toggle('hot', !!activeSector && cube.sector.id === activeSector.id);
         });
@@ -316,7 +333,7 @@
           var heights = [], opacity = 0;
           record.cubes.forEach(function (cube) {
             if (heights.indexOf(cube.elevation) < 0) heights.push(cube.elevation);
-            opacity = Math.max(opacity, cube.progress);
+            opacity = Math.max(opacity, cube.progress > 0 ? 1 : 0);
           });
           record.element.setAttribute('d', heights.map(function (z) { return pathData(record.points, tilt, z, false); }).join(''));
           record.element.style.opacity = String(.68 * opacity * traceProgress);
@@ -326,7 +343,7 @@
           var elevation = 0, opacity = 0;
           record.cubes.forEach(function (cube) {
             elevation = Math.max(elevation, cube.elevation);
-            opacity = Math.max(opacity, cube.progress);
+            opacity = Math.max(opacity, cube.progress > 0 ? 1 : 0);
           });
           var a = project(record.point, tilt), b = lifted(record.point, tilt, elevation);
           record.element.setAttribute('d', 'M' + a[0].toFixed(2) + ' ' + a[1].toFixed(2) + 'L' + b[0].toFixed(2) + ' ' + b[1].toFixed(2));

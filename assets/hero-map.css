@@ -1,5 +1,5 @@
 /* Approved hero map. All styles stay inside the existing hero. */
-#inicio { position: relative; isolation: isolate; overflow: clip; }
+#inicio { position: relative; isolation: isolate; overflow: visible; }
 #inicio::after { content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none; background: linear-gradient(90deg, rgba(255,255,255,.96) 0%, rgba(255,255,255,.82) 26%, rgba(255,255,255,.22) 44%, rgba(255,255,255,.05) 60%, rgba(255,255,255,0) 75%); }
 #inicio .hero-main { position: relative; z-index: 3; }
 #inicio .hero-animation { position: relative; z-index: 3; overflow: visible; background: transparent; pointer-events: none; }
