@@ -254,30 +254,23 @@
         focus.lift = Math.sqrt(1 - focusDepth * focusDepth);
         focus.unit = 1;
         var points = [];
-        focusRooms.forEach(function (room) {
-          var anchor = focusPoint(room.center, focusHeight, room);
-          room.floorPoints.forEach(function (point) {
-            [0, focusHeight].forEach(function (z) {
-              var q = focusPoint(point, z, room);
-              points.push([q[0] - anchor[0], q[1] - anchor[1]]);
-            });
+        var room = camera.room, anchor = focusPoint(camera.point, focusHeight, room);
+        room.floorPoints.forEach(function (point) {
+          [0, focusHeight].forEach(function (z) {
+            var q = focusPoint(point, z, room);
+            points.push([q[0] - anchor[0], q[1] - anchor[1]]);
           });
         });
         var bounds = getBounds(points);
         var left = bounds.x - bounds.width / 2, right = bounds.x + bounds.width / 2;
         var top = bounds.y - bounds.height / 2, bottom = bounds.y + bounds.height / 2;
-        // El ambiente elegido y el extremo derecho quedan dentro del hero.
-        // El resto del plano puede continuar detrás del texto.
-        var limits = [destination.width * .015];
+        // El ambiente ocupa casi el ancho del popup. El zoom se calcula para
+        // cada visita; la vista general conserva su encuadre completo.
+        var limits = [pop.offsetWidth * .94 / bounds.width];
         if (left < 0) limits.push((focus.x - margin) / -left);
         if (right > 0) limits.push((width - margin - focus.x) / right);
         if (top < 0) limits.push((focus.y - 84) / -top);
         if (bottom > 0) limits.push((height - margin - focus.y) / bottom);
-        var mapAnchor = focusPoint(camera.point, focusHeight);
-        var mapRight = Math.max.apply(null, vertices.map(function (point) {
-          return focusPoint(point, 0)[0] - mapAnchor[0];
-        }));
-        if (mapRight > 0) limits.push((width - margin - focus.x) / mapRight);
         focus.unit = Math.max(.01, Math.min.apply(null, limits));
       }
       function pathData(points, tilt, elevation, closed) {
