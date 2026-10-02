@@ -303,6 +303,7 @@
   if (projectTrack && projectCard && galleryStage && rail && slides.length && galleryLabel) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const verticalGallery = window.matchMedia('(max-width: 760px)');
+    projectSection.style.overflowAnchor = 'none';
     // The first copy supports the continuation and a seamless forward loop.
     const continuation = slides[0].cloneNode(true);
     continuation.setAttribute('aria-hidden', 'true');
@@ -341,6 +342,7 @@
     let touchX = null;
     let exitKeyHeld = false;
     let entryFrame = 0;
+    let entryScrollBehavior = null;
     let enteringProject = false;
     let entryAligned = false;
     let resumingProject = false;
@@ -412,6 +414,10 @@
       entryFrame = 0;
       enteringProject = false;
       resumingProject = false;
+      if (entryScrollBehavior !== null) {
+        document.documentElement.style.scrollBehavior = entryScrollBehavior;
+        entryScrollBehavior = null;
+      }
     };
     const alignProject = (resume = false) => {
       if (enteringProject || (!resume && entryAligned) || exitPending || exiting || performance.now() < bypassUntil) return;
@@ -419,6 +425,8 @@
       if (!resume && from >= trackStart() - .5) { entryAligned = true; return; }
       enteringProject = true;
       resumingProject = resume;
+      entryScrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = 'auto';
       const started = performance.now();
       const settle = (now) => {
         const progress = reducedMotion.matches ? 1 : Math.min(1, (now - started) / 360);
@@ -430,8 +438,7 @@
         previousY = window.scrollY;
         if (progress < 1) entryFrame = requestAnimationFrame(settle);
         else {
-          entryFrame = 0;
-          enteringProject = resumingProject = false;
+          cancelEntry();
           entryAligned = true;
           updatePhotos();
         }
