@@ -182,8 +182,8 @@
       var projectedBounds = getBounds(vertices.map(function (point) { return apply(view, point); }));
 
       var width = 0, height = 0, elapsed = 0, frame = 0, started = 0;
-      var settleTime = 5760;
-      var cubeStart = settleTime + 120, cubeDuration = 650, baseCubeHeight = 6, sectorDelay = 35;
+      var drawDuration = 1300;
+      var cubeStart = drawDuration + 120, cubeDuration = 650, baseCubeHeight = 6, sectorDelay = 35;
       var labelStart = cubeStart + cubeDuration + (sectors.length - 1) * sectorDelay + 100;
       var duration = labelStart + Math.max.apply(null, zones.map(function (zone) { return zone.enter.delay + zone.enter.duration; })) + 100;
       var destination = { left: 0, top: 0, width: 0, height: 0 };
@@ -295,8 +295,8 @@
       }
 
       function render(time) {
-        var drawn = clamp((time - 160) / 5600) * traceProgress * totalLength;
-        var tilt = ease(clamp((time - 1250) / (settleTime - 1250)));
+        var drawn = clamp(time / drawDuration) * traceProgress * totalLength;
+        var tilt = 1;
         records.forEach(function (record) {
           var local = drawn >= totalLength ? 1 : clamp((drawn - record.start) / record.length);
           var path = record.points.map(function (point, i) {
@@ -392,9 +392,9 @@
         window.cancelAnimationFrame(frame);
         root.classList.add('hero-map-reset');
         root.classList.toggle('hero-map-no-motion', reduce.matches);
-        surface.setAttribute('data-hero-map-phase', 'positioned');
-        // Empezar con el plano ya ubicado, antes de elevar los bloques.
-        elapsed = reduce.matches ? duration : settleTime;
+        surface.setAttribute('data-hero-map-phase', 'drawing');
+        // Dibujar desde cero en su posición final, antes de elevar los bloques.
+        elapsed = reduce.matches ? duration : 0;
         started = performance.now() - elapsed;
         measure();
         void surface.getBoundingClientRect();
