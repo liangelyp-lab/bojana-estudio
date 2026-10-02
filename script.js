@@ -302,15 +302,18 @@
   const studioSection = document.querySelector('#estudio');
   if (projectTrack && projectCard && galleryStage && rail && slides.length && galleryLabel) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const stackedGallery = window.matchMedia('(max-width: 760px)');
     // Repeat the first photo only as the 30% continuation after Exteriores.
     const continuation = slides[0].cloneNode(true);
     continuation.setAttribute('aria-hidden', 'true');
     rail.appendChild(continuation);
+    const gallerySlides = [...slides, continuation];
     let stickyTop = 59;
     let travel = 0;
     let extraTravel = 0;
     let entryLead = 0;
     let cardHeight = 1;
+    let photoSize = 1;
     let photoStarts = [];
     let captionIndex = 0;
     let target = 0;
@@ -342,7 +345,17 @@
       - (header?.getBoundingClientRect().bottom || 0);
     const atStudio = () => studioSection && Math.abs(window.scrollY - studioTarget()) < 2;
     const paintPhotos = () => {
-      rail.style.transform = 'translate3d(' + (-rendered) + 'px,0,0)';
+      if (stackedGallery.matches) {
+        rail.style.transform = 'none';
+        gallerySlides.forEach((slide, i) => {
+          // The incoming photo rises over the previous one at full height.
+          const y = Math.max(0, Math.min(photoSize, i * photoSize - rendered));
+          slide.style.transform = 'translate3d(0,' + y + 'px,0)';
+        });
+      } else {
+        rail.style.transform = 'translate3d(' + (-rendered) + 'px,0,0)';
+        gallerySlides.forEach((slide) => { slide.style.transform = ''; });
+      }
       let next = 0;
       for (let i = 1; i < photoStarts.length; i++) {
         if (rendered + .5 >= photoStarts[i]) next = i;
@@ -404,7 +417,7 @@
         const progress = reducedMotion.matches ? 1 : Math.min(1, (now - started) / 360);
         const eased = 1 - (1 - progress) ** 3;
         const to = Math.max(0, Math.min(trackStart(), document.documentElement.scrollHeight - window.innerHeight));
-        // Continue the horizontal motion while gently settling below the header.
+        // Continue the photos while gently settling below the header.
         window.scrollTo({ top: Math.max(window.scrollY, from + (to - from) * eased), behavior: 'instant' });
         previousY = window.scrollY;
         if (progress < 1) entryFrame = requestAnimationFrame(settle);
@@ -436,7 +449,7 @@
       const distance = window.scrollY - trackStart() + entryLead;
       const end = travel + extraTravel;
       if (distance <= end) {
-        // Horizontal motion begins before the card reaches the header.
+        // Photo motion begins before the card reaches the header.
         target = Math.max(0, distance);
       } else {
         // Keep the gallery reversible when scrolling back from Studio.
@@ -550,11 +563,13 @@
       stickyTop = Math.max(0, header?.getBoundingClientRect().bottom || 0);
       projectSection.style.setProperty('--project-sticky-top', stickyTop + 'px');
       projectSection.style.setProperty('--project-viewport-height', Math.max(160, window.innerHeight - stickyTop) + 'px');
-      const width = galleryStage.getBoundingClientRect().width;
-      photoStarts = slides.map((item) => item.offsetLeft - slides[0].offsetLeft);
+      const bounds = galleryStage.getBoundingClientRect();
+      const width = bounds.width;
+      photoSize = stackedGallery.matches ? Math.max(1, bounds.height) : width;
+      photoStarts = slides.map((item, i) => stackedGallery.matches ? i * photoSize : item.offsetLeft - slides[0].offsetLeft);
       travel = photoStarts.at(-1) || 0;
-      const gap = Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - width);
-      extraTravel = width * .3 + gap;
+      const gap = stackedGallery.matches ? 0 : Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - width);
+      extraTravel = photoSize * .3 + gap;
       cardHeight = projectCard.getBoundingClientRect().height;
       entryLead = Math.min(160, cardHeight * .18);
       projectTrack.style.minHeight = Math.ceil(cardHeight + travel + extraTravel - entryLead) + 'px';
@@ -578,6 +593,7 @@
       if (!resizeFrame) resizeFrame = requestAnimationFrame(measure);
     };
     window.addEventListener('resize', scheduleMeasure);
+    stackedGallery.addEventListener('change', scheduleMeasure);
     window.addEventListener('pageshow', () => {
       measure();
       previousY = window.scrollY;

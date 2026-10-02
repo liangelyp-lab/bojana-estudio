@@ -816,4 +816,8 @@ section[id] { scroll-margin-top: 96px; }
 @media (max-width: 760px) {
   #proyectos { --project-gutter: 18px; }
   #proyectos .project-copy { flex-direction: column; align-items: flex-start; gap: 6px; padding: 14px var(--project-gutter); }
+  #proyectos .gallery-rail { position: relative; display: block; gap: 0; will-change: auto; }
+  #proyectos .gallery-slide { position: absolute; inset: 0; width: 100%; background: var(--paper); will-change: transform; }
+  #proyectos .gallery-slide:not(:first-child) { transform: translate3d(0, 100%, 0); }
+  #proyectos .gallery-label { z-index: 1; }
 }
