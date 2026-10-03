@@ -308,6 +308,11 @@
     const continuation = slides[0].cloneNode(true);
     continuation.setAttribute('aria-hidden', 'true');
     rail.appendChild(continuation);
+    slides.slice(1).forEach((slide) => {
+      const copy = slide.cloneNode(true);
+      copy.setAttribute('aria-hidden', 'true');
+      rail.appendChild(copy);
+    });
     let stickyTop = 59;
     let travel = 0;
     let extraTravel = 0;
@@ -364,6 +369,8 @@
       if (!firstPhotoLooped && cycleLength && rendered >= cycleLength) {
         firstPhotoLooped = true;
         slides[0].style.paddingLeft = '0px';
+        measure();
+        return;
       }
       const position = photoPosition();
       rail.style.transform = verticalGallery.matches
@@ -377,6 +384,10 @@
       if (next !== captionIndex) {
         captionIndex = next;
         galleryLabel.textContent = slides[next].dataset.caption;
+      }
+      if (verticalGallery.matches) {
+        const photoBottom = photoStarts[next] + slides[next].offsetHeight - position;
+        galleryStage.style.setProperty('--project-caption-bottom', Math.max(0, galleryStage.clientHeight - photoBottom) + 'px');
       }
     };
     const cancelExit = () => {
@@ -420,6 +431,7 @@
       entryFrame = 0;
       enteringProject = false;
       resumingProject = false;
+      document.dispatchEvent(new CustomEvent('bojana:project-entry', { detail: { active: false } }));
       if (entryScrollBehavior !== null) {
         document.documentElement.style.scrollBehavior = entryScrollBehavior;
         entryScrollBehavior = null;
@@ -431,6 +443,7 @@
       if (!resume && from >= trackStart() - .5) { entryAligned = true; return; }
       enteringProject = true;
       resumingProject = resume;
+      document.dispatchEvent(new CustomEvent('bojana:project-entry', { detail: { active: true } }));
       entryScrollBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = 'auto';
       const started = performance.now();
@@ -482,6 +495,14 @@
       entryAligned = false;
       sizeTrack();
       alignProject(true);
+    };
+    const captureProjectEntry = (delta) => {
+      const y = window.scrollY;
+      if (delta <= 0 || performance.now() < bypassUntil || enteringProject || exiting
+        || y >= trackStart() - .5 || y + delta < trackStart() - entryLead * .72) return false;
+      if (galleryReleased) resumeGallery();
+      else alignProject();
+      return enteringProject;
     };
     const animatePhotos = (now) => {
       const dt = previousPhotoTime ? Math.min(64, now - previousPhotoTime) : 16;
@@ -550,6 +571,7 @@
         return;
       }
       const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
+      if (captureProjectEntry(delta)) { event.preventDefault(); return; }
       const y = window.scrollY;
       if (!galleryReleased && !enteredStudio && now >= bypassUntil && y >= trackStart() - entryLead
         && y < exitStart() && y + delta >= exitStart()) {
@@ -573,6 +595,7 @@
       if (Math.abs(down) <= Math.abs(across)) return;
       if (down < 0) { releaseGallery(); return; }
       if (enteringProject) { if (event.cancelable) event.preventDefault(); return; }
+      if (captureProjectEntry(down)) { if (event.cancelable) event.preventDefault(); return; }
       const y = window.scrollY;
       const crossing = !galleryReleased && !enteredStudio && performance.now() >= bypassUntil
         && y >= trackStart() - entryLead && y < exitStart() && y + down >= exitStart();
@@ -601,6 +624,7 @@
       }
       const y = window.scrollY;
       const amount = event.key === 'ArrowDown' ? 40 : window.innerHeight * .85;
+      if (captureProjectEntry(amount)) { event.preventDefault(); return; }
       if (!galleryReleased && !enteredStudio && y >= trackStart() - entryLead && y < exitStart() && y + amount >= exitStart()) {
         event.preventDefault();
         exitKeyHeld = true;
@@ -631,7 +655,7 @@
       const width = bounds.width;
       const previousCycle = cycleLength;
       const round = previousCycle ? Math.floor(passLast / previousCycle) : 0;
-      photoSize = verticalGallery.matches ? Math.max(1, bounds.height) : width;
+      photoSize = verticalGallery.matches ? Math.max(1, slides.at(-1).offsetHeight) : slides.at(-1).offsetWidth;
       continuation.style.paddingLeft = '0px';
       continuation.style.marginLeft = verticalGallery.matches
         ? '0px'
@@ -639,6 +663,26 @@
       photoStarts = slides.map((item) => verticalGallery.matches ? item.offsetTop - slides[0].offsetTop : item.offsetLeft - slides[0].offsetLeft);
       travel = photoStarts.at(-1) || 0;
       cycleLength = verticalGallery.matches ? continuation.offsetTop - slides[0].offsetTop : continuation.offsetLeft - slides[0].offsetLeft;
+      // Repeat enough photos to fill the viewport at the end of each pass.
+      // Each render keeps its own proportions without an empty interval.
+      const viewportSize = verticalGallery.matches ? bounds.height : width;
+      const railEnd = () => {
+        const last = rail.lastElementChild;
+        return verticalGallery.matches ? last.offsetTop + last.offsetHeight : last.offsetLeft + last.offsetWidth;
+      };
+      if (cycleLength > 0) {
+        while (railEnd() < cycleLength + viewportSize) {
+          const previousEnd = railEnd();
+          slides.forEach((slide) => {
+            const copy = slide.cloneNode(true);
+            copy.setAttribute('aria-hidden', 'true');
+            copy.style.paddingLeft = '0px';
+            copy.style.marginLeft = '0px';
+            rail.appendChild(copy);
+          });
+          if (railEnd() <= previousEnd) break;
+        }
+      }
       if (previousCycle) {
         const scale = cycleLength / previousCycle;
         passStart *= scale;
@@ -646,10 +690,11 @@
         rendered *= scale;
       }
       passLast = round * cycleLength + travel;
-      const gap = verticalGallery.matches ? 0 : Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - width);
+      const gap = verticalGallery.matches ? 0 : Math.max(0, continuation.offsetLeft - slides.at(-1).offsetLeft - photoSize);
       extraTravel = photoSize * .3 + gap;
       cardHeight = projectCard.getBoundingClientRect().height;
-      entryLead = verticalGallery.matches ? 0 : Math.min(160, cardHeight * .18);
+      entryLead = Math.min(180, cardHeight * .22);
+      projectSection.style.setProperty('--project-entry-lead', entryLead + 'px');
       sizeTrack();
       paintPhotos();
 
@@ -671,6 +716,7 @@
     const scheduleMeasure = () => {
       if (!resizeFrame) resizeFrame = requestAnimationFrame(measure);
     };
+    rail.querySelectorAll('img').forEach((image) => image.addEventListener('load', scheduleMeasure));
     window.addEventListener('resize', scheduleMeasure);
     window.visualViewport?.addEventListener('resize', scheduleMeasure);
     verticalGallery.addEventListener('change', scheduleMeasure);

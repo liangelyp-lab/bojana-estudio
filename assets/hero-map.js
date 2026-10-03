@@ -202,6 +202,78 @@
       var camera = { progress: 0, point: focusRooms[0].center, room: focusRooms[0] };
       var tour = null, tourRunning = false, traceProgress = 1, activeSector = null, hoveredSector = null, hearts = [];
 
+      // One clock freezes the drawing, camera, tour delays and render effects.
+      // Returning to the hero resumes the same point in the animation.
+      var playbackPaused = false, playbackPausedAt = 0, playbackOffset = 0;
+      var projectEntryActive = false;
+      var mapWork = new Set(), pausedVisuals = new Set();
+      function mapNow() {
+        return (playbackPaused ? playbackPausedAt : performance.now()) - playbackOffset;
+      }
+      function armMapWork(job) {
+        if (playbackPaused || !mapWork.has(job)) return;
+        function run() {
+          job.id = 0;
+          if (playbackPaused || !mapWork.has(job)) return;
+          mapWork.delete(job);
+          job.callback(mapNow());
+        }
+        job.id = job.frame ? window.requestAnimationFrame(run)
+          : window.setTimeout(run, Math.max(0, job.due - mapNow()));
+      }
+      function scheduleMapWork(callback, delay, isFrame) {
+        var job = { callback: callback, due: mapNow() + delay, frame: isFrame, id: 0 };
+        mapWork.add(job);
+        armMapWork(job);
+        return job;
+      }
+      function mapFrame(callback) { return scheduleMapWork(callback, 0, true); }
+      function cancelMapWork(job) {
+        if (!job) return;
+        if (job.frame) window.cancelAnimationFrame(job.id);
+        else window.clearTimeout(job.id);
+        mapWork.delete(job);
+      }
+      function freezeMapVisuals() {
+        if (!surface.getAnimations) return;
+        surface.getAnimations({ subtree: true }).forEach(function (animation) {
+          if (animation.playState === 'running') {
+            pausedVisuals.add(animation);
+            animation.pause();
+          }
+        });
+      }
+      function setHeroPaused(paused) {
+        if (paused === playbackPaused) return;
+        if (paused) {
+          playbackPausedAt = performance.now();
+          playbackPaused = true;
+          mapWork.forEach(function (job) {
+            if (job.frame) window.cancelAnimationFrame(job.id);
+            else window.clearTimeout(job.id);
+            job.id = 0;
+          });
+          freezeMapVisuals();
+        } else {
+          playbackOffset += performance.now() - playbackPausedAt;
+          playbackPaused = false;
+          mapWork.forEach(armMapWork);
+          pausedVisuals.forEach(function (animation) {
+            if (animation.playState === 'paused') animation.play();
+          });
+          pausedVisuals.clear();
+        }
+        surface.setAttribute('data-hero-map-paused', String(paused));
+      }
+      function updateHeroPlayback() {
+        var project = document.getElementById('proyectos');
+        var header = document.querySelector('.site-header');
+        var headerBottom = header ? header.getBoundingClientRect().bottom : 0;
+        var entryLead = project ? parseFloat(window.getComputedStyle(project).getPropertyValue('--project-entry-lead')) || 0 : 0;
+        var reachedProjects = project && project.getBoundingClientRect().top <= headerBottom + entryLead * .72 + .5;
+        setHeroPaused(Boolean(document.hidden || projectEntryActive || reachedProjects));
+      }
+
       function projectPlane(point, tilt) {
         var mobile = width < 760;
         var topScale = Math.min(width * (mobile ? .64 : .36) / floorBounds.width, height * .60 / floorBounds.height);
@@ -243,14 +315,12 @@
       }
       function project(point, tilt) { return lifted(point, tilt, 0); }
       function measureFocus() {
-        // La foto conserva su posición. El mapa se acerca desde el punto de
-        // vista de cada render y puede continuar detrás del texto del hero.
-        focus.x = destination.left + pop.offsetLeft + pop.offsetWidth * .5;
-        focus.y = destination.top + pop.offsetTop + pop.offsetHeight - 16 * destination.width / 600;
+        // La cámara entra al sector elegido; el plano general conserva
+        // su encuadre solo durante la presentación y al salir del popup.
+        var popupCenter = destination.left + pop.offsetLeft + pop.offsetWidth * .5;
+        var popupBase = destination.top + pop.offsetTop + pop.offsetHeight - 16 * destination.width / 600;
         var margin = Math.max(12, width * .018);
-        // En un teléfono bajo se baja el ángulo de vista, para conservar el
-        // mapa grande y el volumen visible sin mover la foto sobre el texto.
-        focusDepth = width < 760 ? Math.min(.22, Math.max(.08, (height - margin - focus.y) / destination.width * .5)) : .22;
+        focusDepth = width < 760 ? Math.min(.22, Math.max(.08, (height - margin - popupBase) / destination.width * .5)) : .22;
         focus.lift = Math.sqrt(1 - focusDepth * focusDepth);
         focus.unit = 1;
         var points = [];
@@ -262,31 +332,27 @@
           });
         });
         var roomBounds = getBounds(points);
-        var framePoints = vertices.map(function (point) {
-          var q = focusPoint(point, 0, room);
-          return [q[0] - anchor[0], q[1] - anchor[1]];
-        });
-        sectors.forEach(function (sector) {
-          sector.floorPoints.forEach(function (point) {
-            var q = focusPoint(point, sector.id === room.id ? focusHeight : baseCubeHeight, room);
-            framePoints.push([q[0] - anchor[0], q[1] - anchor[1]]);
-          });
-        });
-        var bounds = getBounds(framePoints);
         var heroLeft = surface.getBoundingClientRect().left;
         var left = margin - heroLeft, right = document.documentElement.clientWidth - heroLeft - margin;
-        var top = margin, bottom = height - margin;
-        // Usar el ancho real de la pantalla, sin recortar en el contenedor.
-        // Primero conservar el zoom del popup y después reubicar el plano
-        // completo; reducir la escala solo si no cabe en la pantalla.
-        focus.unit = Math.max(.01, Math.min(pop.offsetWidth * .94 / roomBounds.width,
-          (right - left) / bounds.width, (bottom - top) / bounds.height));
-        var planLeft = (bounds.x - bounds.width / 2) * focus.unit;
-        var planRight = (bounds.x + bounds.width / 2) * focus.unit;
-        var planTop = (bounds.y - bounds.height / 2) * focus.unit;
-        var planBottom = (bounds.y + bounds.height / 2) * focus.unit;
-        focus.x = Math.max(left - planLeft, Math.min(focus.x, right - planRight));
-        focus.y = Math.max(top - planTop, Math.min(focus.y, bottom - planBottom));
+        var introHeader = surface.closest('.hero-intro-track') && document.querySelector('.site-header');
+        var top = margin + (introHeader ? introHeader.getBoundingClientRect().height : 0), bottom = height - margin;
+        // El volumen seleccionado acompaña el ancho del render. Los demás
+        // sectores pueden continuar fuera del encuadre durante el acercamiento.
+        focus.unit = Math.max(.01, Math.min(pop.offsetWidth * (width < 760 ? 1.08 : 1.16) / roomBounds.width,
+          (right - left) / roomBounds.width, (bottom - top) / roomBounds.height));
+        var roomLeft = (roomBounds.x - roomBounds.width / 2) * focus.unit;
+        var roomRight = (roomBounds.x + roomBounds.width / 2) * focus.unit;
+        var roomTop = (roomBounds.y - roomBounds.height / 2) * focus.unit;
+        var roomBottom = (roomBounds.y + roomBounds.height / 2) * focus.unit;
+        focus.x = Math.max(left - roomLeft, Math.min(popupCenter - roomBounds.x * focus.unit, right - roomRight));
+        focus.y = Math.max(top - roomTop, Math.min(popupBase, bottom - roomBottom));
+      }
+      function setPopOrigin() {
+        // El render nace y se cierra sobre el techo del mismo volumen
+        // mientras la cámara continúa su movimiento.
+        var point = lifted(camera.point, 1, selectedHeight(baseCubeHeight));
+        pop.style.transformOrigin = (point[0] - destination.left - pop.offsetLeft) + 'px ' +
+          (point[1] - destination.top - pop.offsetTop) + 'px';
       }
       function pathData(points, tilt, elevation, closed) {
         return points.map(function (point, i) {
@@ -390,26 +456,28 @@
         svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
         measureFocus();
         render(elapsed);
+        setPopOrigin();
+        if (playbackPaused) freezeMapVisuals();
       }
       function tick(now) {
         elapsed = Math.min(duration, now - started);
         render(elapsed);
-        if (elapsed < duration) frame = window.requestAnimationFrame(tick);
+        if (elapsed < duration) frame = mapFrame(tick);
         else startTour();
       }
       function replay() {
         stopTour();
-        window.cancelAnimationFrame(frame);
+        cancelMapWork(frame);
         root.classList.add('hero-map-reset');
         root.classList.toggle('hero-map-no-motion', reduce.matches);
         surface.setAttribute('data-hero-map-phase', 'drawing');
         // Dibujar desde cero en su posición final, antes de elevar los bloques.
         elapsed = reduce.matches ? duration : 0;
-        started = performance.now() - elapsed;
+        started = mapNow() - elapsed;
         measure();
         void surface.getBoundingClientRect();
         root.classList.remove('hero-map-reset');
-        if (!reduce.matches) frame = window.requestAnimationFrame(tick);
+        if (!reduce.matches) frame = mapFrame(tick);
       }
       window.addEventListener('resize', measure);
       svg.addEventListener('dblclick', replay);
@@ -442,27 +510,28 @@
       function pause(ms, signal) {
         return new Promise(function (resolve, reject) {
           if (signal.aborted) { reject(aborted()); return; }
-          var timer = window.setTimeout(function () { signal.removeEventListener('abort', cancel); resolve(); }, ms);
-          function cancel() { window.clearTimeout(timer); reject(aborted()); }
+          var timer = scheduleMapWork(function () { signal.removeEventListener('abort', cancel); resolve(); }, ms, false);
+          function cancel() { cancelMapWork(timer); reject(aborted()); }
           signal.addEventListener('abort', cancel, { once: true });
         });
       }
       function tween(ms, update, signal) {
         return new Promise(function (resolve, reject) {
           if (signal.aborted) { reject(aborted()); return; }
-          var start = performance.now(), id;
-          function cancel() { window.cancelAnimationFrame(id); reject(aborted()); }
+          var start = mapNow(), id;
+          function cancel() { cancelMapWork(id); reject(aborted()); }
           signal.addEventListener('abort', cancel, { once: true });
           function step(now) {
             var t = clamp((now - start) / ms);
             update(t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-            if (t < 1) id = window.requestAnimationFrame(step);
+            if (t < 1) id = mapFrame(step);
             else { signal.removeEventListener('abort', cancel); resolve(); }
           }
-          step(start);
+          if (playbackPaused) id = mapFrame(step);
+          else step(start);
         });
       }
-      function cam(progress) { camera.progress = progress; render(duration); }
+      function cam(progress) { camera.progress = progress; render(duration); setPopOrigin(); }
       function cancelAnimations(node) { node.getAnimations().forEach(function (animation) { animation.cancel(); }); }
       async function pictureZoom(signal) {
         try {
@@ -472,10 +541,9 @@
       }
       function openPop(signal) {
         svg.classList.add('pop-open');
-        var f = stage.clientWidth / 600;
         cancelAnimations(pop);
         cancelAnimations(picture);
-        pop.style.transformOrigin = (300 * f - pop.offsetLeft) + 'px ' + (347 * f - pop.offsetTop) + 'px';
+        setPopOrigin();
         var options = { duration: 850, easing: 'cubic-bezier(.2,.85,.25,1)', fill: 'forwards' };
         pop.animate([{ transform: 'scale(.04)', opacity: 0, borderRadius: '90px' }, { opacity: 1, offset: .25 }, { transform: 'scale(1)', opacity: 1, borderRadius: '22px' }], options);
         picture.animate([{ transform: 'scale(1.9)' }, { transform: 'scale(1.04)' }], options);
@@ -587,5 +655,15 @@
         labelRecords.forEach(function (record) { record.element.classList.remove('hot', 'hover'); });
       }
       Object.keys(pictures).forEach(function (id) { var preload = new Image(); preload.src = pictures[id]; });
+      document.addEventListener('bojana:project-entry', function (event) {
+        projectEntryActive = Boolean(event.detail && event.detail.active);
+        updateHeroPlayback();
+      });
+      window.addEventListener('scroll', updateHeroPlayback, { passive: true });
+      window.addEventListener('resize', updateHeroPlayback);
+      window.addEventListener('pageshow', updateHeroPlayback);
+      window.addEventListener('pagehide', function () { setHeroPaused(true); });
+      document.addEventListener('visibilitychange', updateHeroPlayback);
+      updateHeroPlayback();
       replay();
     })();
