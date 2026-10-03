@@ -327,6 +327,7 @@
     let resumedPass = false;
     let mobileViewportHeight = window.visualViewport?.height || window.innerHeight;
     let photoStarts = [];
+    let captionLead = 0;
     let captionIndex = 0;
     let target = 0;
     let rendered = 0;
@@ -376,9 +377,14 @@
       rail.style.transform = verticalGallery.matches
         ? 'translate3d(0,' + (-position) + 'px,0)'
         : 'translate3d(' + (-position) + 'px,0,0)';
+      // Advance desktop labels while a small strip of the previous photo remains.
+      // Wrap the same threshold into the first photo at the end of the rail.
+      const captionPosition = cycleLength
+        ? (position + captionLead) % cycleLength
+        : position + captionLead;
       let next = 0;
       for (let i = 1; i < photoStarts.length; i++) {
-        if (position + .5 >= photoStarts[i]) next = i;
+        if (captionPosition + .5 >= photoStarts[i]) next = i;
         else break;
       }
       if (next !== captionIndex) {
@@ -653,6 +659,9 @@
       projectSection.style.setProperty('--project-viewport-height', Math.max(160, viewportHeight - stickyTop) + 'px');
       const bounds = galleryStage.getBoundingClientRect();
       const width = bounds.width;
+      const labelStyle = getComputedStyle(galleryLabel);
+      captionLead = verticalGallery.matches ? 0
+        : (parseFloat(labelStyle.paddingLeft) || 0) + (parseFloat(labelStyle.fontSize) || 12) * 9.5;
       const previousCycle = cycleLength;
       const round = previousCycle ? Math.floor(passLast / previousCycle) : 0;
       photoSize = verticalGallery.matches ? Math.max(1, slides.at(-1).offsetHeight) : slides.at(-1).offsetWidth;

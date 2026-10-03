@@ -10,6 +10,11 @@
   var targetImage = document.getElementById('brand-logo');
   if (!surface || !track || !logo || !space || !words || !header || !targetImage) return;
 
+  var serviceLines = Array.from(words.querySelectorAll('.hero-service-line'));
+  var serviceWords = serviceLines.map(function (line) { return line.querySelector('.hero-service-word'); });
+  var servicePitch = 1;
+  var logoScrollEnd = .3;
+  var serviceScrollEnd = 1;
   var ratio = 2116 / 743;
   var compactLogoWidth = 1;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -60,22 +65,50 @@
     var width = Math.min(bounds.width, bounds.height * ratio);
     return { left: bounds.left, top: bounds.top + (bounds.height - width / ratio) / 2, width: width };
   }
+  function positionServices(progress) {
+    // The first service gains emphasis in place; each exit passes it to the next.
+    // The list is clipped at the original architecture line.
+    var serviceProgress = clamp((progress - logoScrollEnd) / (serviceScrollEnd - logoScrollEnd));
+    var sequence = serviceProgress * serviceLines.length;
+    var departed = 0;
+    var stages = serviceLines.map(function (line, index) {
+      var local = clamp(sequence - index);
+      var exit = reduce.matches ? (local >= 1 ? 1 : 0) : smooth((local - .42) / .58);
+      departed += exit;
+      return { local: local, exit: exit };
+    });
+    serviceLines.forEach(function (line, index) {
+      var stage = stages[index];
+      var incoming = index === 0
+        ? (reduce.matches ? (stage.local > 0 ? 1 : 0) : smooth(stage.local / .32))
+        : stages[index - 1].exit;
+      var emphasis = incoming * (1 - stage.exit);
+      var offset = -Math.min(index + 1, departed) * servicePitch;
+      line.style.transform = 'translate3d(0,' + offset + 'px,0)';
+      line.setAttribute('aria-hidden', stage.exit >= 1 ? 'true' : 'false');
+      serviceWords[index].style.setProperty('--service-growth', 2 * emphasis + 'pt');
+      serviceWords[index].style.setProperty('--service-opacity', String(mix(.5, 1, emphasis)));
+    });
+    words.classList.toggle('is-scrolling', progress > 0);
+    if (progress > 0) words.classList.add('is-visible');
+    words.setAttribute('aria-hidden', sequence >= serviceLines.length ? 'true' : 'false');
+  }
   function position() {
-    var progress = clamp((window.scrollY - trackStart) / travel);
-    var eased = reduce.matches ? progress : smooth(progress);
+    var scrollProgress = Math.max(0, (window.scrollY - trackStart) / travel);
+    var progress = clamp(scrollProgress);
+    // Give the logo the opening scroll segment before the services begin.
+    var logoProgress = clamp(progress / logoScrollEnd);
+    var eased = reduce.matches ? logoProgress : smooth(logoProgress);
     var destination = target();
     var left = mix(origin.left, destination.left, eased);
     var top = mix(origin.top, destination.top, eased);
     var width = mix(origin.width, destination.width, eased);
     logo.style.transform = 'translate3d(' + left + 'px,' + top + 'px,0) scale(' + width / origin.width + ')';
-    var wordOpacity = 1 - smooth(progress / .55);
-    words.style.opacity = String(wordOpacity);
-    words.style.transform = 'translate3d(0,' + (-progress * Math.min(surface.clientHeight * .22, 150)) + 'px,0)';
-    words.setAttribute('aria-hidden', wordOpacity < .01 ? 'true' : 'false');
+    positionServices(scrollProgress);
 
     var headerOpacity = smooth((progress - .42) / .5);
-    // Reveal navigation only once the logo has reached the compact header.
-    var ready = progress >= .98 && header.classList.contains('is-compact')
+    // Reveal navigation before the service sequence finishes.
+    var ready = progress >= .84 && header.classList.contains('is-compact')
       && Math.abs(destination.width - compactLogoWidth) < .5;
     var navOpacity = ready ? 1 : 0;
     header.style.setProperty('--intro-header-opacity', String(headerOpacity));
@@ -114,6 +147,12 @@
     };
     trackStart = window.scrollY + track.getBoundingClientRect().top;
     travel = Math.max(1, track.offsetHeight - surface.offsetHeight);
+    // Continue after the hero unpins, until the next section fills about 26% of the viewport.
+    serviceScrollEnd = 1 + surface.offsetHeight * .26 / travel;
+    var wordStyle = window.getComputedStyle(words);
+    var lineHeight = parseFloat(wordStyle.lineHeight) || (parseFloat(wordStyle.fontSize) || 30) * 1.1;
+    words.style.setProperty('--service-line-height', lineHeight + 'px');
+    servicePitch = lineHeight + (parseFloat(wordStyle.rowGap) || 0);
     logo.style.width = origin.width + 'px';
     position();
   }
