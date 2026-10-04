@@ -1123,7 +1123,7 @@ section[id] { scroll-margin-top: 96px; }
   .engineering-project-figure { grid-area: figure; }
   .engineering-project h2 { max-width: 14ch; }
   .engineering-project-figure { width: 100%; height: auto; max-width: 680px; margin-inline: auto; }
-  .engineering-project-figure svg { width: 100%; height: auto; margin-left: 0; transform: none; }
+  .engineering-project-figure svg { width: 100%; height: auto; margin-left: 100; transform: none; }
   .engineering-project-steps { align-self: start; justify-self: start; width: 100%; height: auto; margin-top: 0; }
 }
 @media (max-width: 520px) {
