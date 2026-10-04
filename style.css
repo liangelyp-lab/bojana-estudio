@@ -1132,12 +1132,11 @@ section[id] { scroll-margin-top: 96px; }
     padding-left: clamp(16px, 4vw, 24px);
     padding-right: clamp(16px, 4vw, 24px);
     overflow: visible;
-    overflow-x: clip;
     display: block;
   }
   .engineering-project-grid {
     height: auto;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    grid-template-columns: minmax(110px, 1fr) minmax(160px, 1.4fr);
     grid-template-rows: auto;
     grid-template-areas:
       "kicker kicker"
@@ -1302,7 +1301,7 @@ section[id] { scroll-margin-top: 96px; }
     max-height: 250px;
     margin: 0;
     transform: scale(1.5);
-    transform-origin: center right;
+    transform-origin: center;
   }
   .engineering-project-figure svg .engineering-diagram-text {
     font-size: 13px;
@@ -1333,7 +1332,7 @@ section[id] { scroll-margin-top: 96px; }
     padding-right: 8px;
   }
   .engineering-project-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    grid-template-columns: minmax(95px, 1fr) minmax(140px, 1.3fr);
     row-gap: 20px;
     column-gap: 10px;
   }
