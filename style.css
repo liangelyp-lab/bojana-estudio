@@ -1189,7 +1189,7 @@ section[id] { scroll-margin-top: 96px; }
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 18px;
+    gap: 28px;
     width: 100%;
     max-width: 140px;
     height: auto;
@@ -1211,7 +1211,7 @@ section[id] { scroll-margin-top: 96px; }
     z-index: 0;
     left: 5px;
     top: 12px;
-    bottom: -18px;
+    bottom: -28px;
     width: 1px;
     height: auto;
     right: auto;
@@ -1245,9 +1245,9 @@ section[id] { scroll-margin-top: 96px; }
     box-shadow: 0 0 0 3px var(--paper);
     transition: background-color .25s ease, transform .25s ease;
   }
-  .engineering-project-step-label {
+  .engineering-project-step .engineering-project-step-label {
     color: #777;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 500;
     letter-spacing: .06em;
     text-transform: uppercase;
@@ -1274,7 +1274,7 @@ section[id] { scroll-margin-top: 96px; }
     display: none !important;
   }
 
-  /* Estructura mucho más pequeña */
+  /* Estructura al lado del timeline mobile. */
   .engineering-project-figure {
     grid-area: figure;
     align-self: center;
@@ -1283,18 +1283,19 @@ section[id] { scroll-margin-top: 96px; }
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-width: 220px;
+    max-width: 250px;
     height: auto;
     margin: 0 auto;
   }
   .engineering-project-figure svg {
     display: block;
     width: 100%;
-    max-width: 200px;
+    max-width: 230px;
     height: auto;
-    max-height: 220px;
+    max-height: 250px;
     margin: 0;
-    transform: none;
+    transform: scale(1.1);
+    transform-origin: center;
   }
   .engineering-project-figure svg .engineering-diagram-text {
     font-size: 13px;
@@ -1340,21 +1341,21 @@ section[id] { scroll-margin-top: 96px; }
     font-size: 11px;
   }
   .engineering-project-steps {
-    gap: 14px;
+    gap: 24px;
     max-width: 115px;
   }
   .engineering-project-steps li:not(:last-child)::after {
-    bottom: -14px;
+    bottom: -24px;
   }
-  .engineering-project-step-label {
-    font-size: 9.5px;
+  .engineering-project-step .engineering-project-step-label {
+    font-size: 8.5px;
   }
   .engineering-project-figure {
-    max-width: 180px;
+    max-width: 210px;
   }
   .engineering-project-figure svg {
-    max-width: 170px;
-    max-height: 190px;
+    max-width: 200px;
+    max-height: 220px;
   }
   .engineering-project-description-box {
     margin-top: 4px;
