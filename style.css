@@ -928,19 +928,28 @@ section[id] { scroll-margin-top: 96px; }
   line-height: 1.55;
 }
 .engineering-project-steps {
-  grid-column: 1 / 5;
+  grid-column: 2 / 5;
   grid-row: 3;
-  align-self: start;
+  align-self: stretch;
+  justify-self: end;
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 0;
-  width: min(100%, 286px);
+  width: min(100%, 300px);
+  height: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 0 clamp(28px, 4svh, 42px);
   list-style: none;
 }
-.engineering-project-steps li { position: relative; min-width: 0; }
+.engineering-project-steps li {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 56px;
+  transition: flex-grow .32s ease;
+}
+.engineering-project-steps li.is-active { flex-grow: 1.85; }
 .engineering-project-steps li:not(:last-child)::after {
   content: "";
   position: absolute;
@@ -960,6 +969,7 @@ section[id] { scroll-margin-top: 96px; }
   column-gap: 10px;
   align-items: start;
   width: 100%;
+  height: 100%;
   min-height: 60px;
   margin: 0;
   padding: 0 0 16px;
@@ -1021,7 +1031,7 @@ section[id] { scroll-margin-top: 96px; }
   transition: max-height .32s ease, margin-top .32s ease, opacity .22s ease;
 }
 .engineering-project-step[aria-expanded="true"] .engineering-project-step-description {
-  max-height: 7.5em;
+  max-height: 6.5em;
   margin-top: 8px;
   opacity: 1;
 }
@@ -1055,7 +1065,7 @@ section[id] { scroll-margin-top: 96px; }
   min-height: 0;
   margin-left: -24%;
   overflow: visible;
-  transform: scale(1.25);
+  transform: translateY(clamp(24px, 4svh, 38px)) scale(1.25);
   transform-origin: center;
 }
 .engineering-project-figure svg * {
@@ -1102,7 +1112,9 @@ section[id] { scroll-margin-top: 96px; }
   .engineering-project h2 { max-width: 14ch; }
   .engineering-project-figure { width: 100%; height: auto; max-width: 680px; margin-inline: auto; }
   .engineering-project-figure svg { width: 100%; height: auto; margin-left: 0; transform: none; }
-  .engineering-project-steps { width: min(100%, 250px); }
+  .engineering-project-steps { align-self: start; justify-self: start; width: min(100%, 250px); height: auto; padding-bottom: 0; }
+  .engineering-project-steps li,
+  .engineering-project-steps li.is-active { flex: 0 0 auto; }
 }
 @media (max-width: 520px) {
   .engineering-project { padding-block: 56px; }
