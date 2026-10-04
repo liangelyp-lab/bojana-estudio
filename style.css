@@ -1149,8 +1149,8 @@ section[id] { scroll-margin-top: 96px; }
   .engineering-project-meta {
     grid-area: kicker;
     margin-bottom: 0;
-    justify-content: center;
-    text-align: center;
+    justify-content: flex-start;
+    text-align: left;
     flex-wrap: wrap;
     gap: 6px 18px;
   }
