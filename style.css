@@ -1441,9 +1441,16 @@ section[id] { scroll-margin-top: 96px; }
   width: auto;
   overflow: visible;
 }
+.bj-divider .bj-divider__item svg .t {
+  font-family: var(--navigation-font-family);
+  font-weight: 400;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
 
 /* En mobile: mostrar solo una línea con alternancia (3 y luego 2) distribuidos a lo ancho */
 @media (max-width: 768px) {
+  .bj-divider .bj-divider__item svg .t { font-weight: 500; }
   .bj-divider {
     --bj-icon-h: clamp(19px, 5.2vw, 21px);
     --bj-pad-y: 9px;
