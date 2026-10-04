@@ -813,6 +813,10 @@ const arrow=(x1,y1,x2,y2)=>{const a=Math.atan2(y2-y1,x2-x1),h=7,f=d=>`${x2-h*Mat
 const colPath=(s,t)=>{let d='';for(let i=0;i<=N;i++){const h=307*i/N;d+=(i?'L':'M')+X(s,h,t)+' '+Y(s,h)}return d};
 let draw=0,ld=0,df=0,hl=0,step=0,tgt={ld:0,df:0,hl:0},reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 function render(){
+ btns.forEach((button,i)=>{
+  const visible=i===1?ld:i===2?df: i===3?hl:0;
+  button.parentElement.classList.toggle('is-diagram-visible',visible>.01);
+ });
  ghost.forEach((e,s)=>e.setAttribute('d',colPath(s,0)));
  ghR.forEach((e,i)=>{const h=H[i+1];e.setAttribute('x1',X(0,h,0));e.setAttribute('y1',Y(0,h));e.setAttribute('x2',X(1,h,0));e.setAttribute('y2',Y(1,h))});
  cols.forEach((e,s)=>e.setAttribute('d',colPath(s,df)));
