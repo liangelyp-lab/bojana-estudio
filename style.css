@@ -1075,9 +1075,9 @@ section[id] { scroll-margin-top: 96px; }
   max-width: none;
   height: 100%;
   min-height: 0;
-  margin-left: -33%;
+  margin-left: -27%;
   overflow: visible;
-  transform: translate(-2.5%, clamp(24px, 4svh, 38px)) scale(1.12);
+  transform: translateY(clamp(24px, 4svh, 38px)) scale(1.12);
   transform-origin: center;
 }
 .engineering-project-figure svg * {
