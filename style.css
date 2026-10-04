@@ -1112,6 +1112,12 @@ section[id] { scroll-margin-top: 96px; }
   opacity: .9;
 }
 .engineering-project-figure svg .engineering-diagram-accent-text { fill: #555; }
+.engineering-project-figure svg .engineering-diagram-text,
+.engineering-project-figure svg .engineering-diagram-text tspan {
+  font-family: var(--navigation-font-family);
+  font-weight: 400;
+  stroke: none;
+}
 .engineering-project-figure svg .engineering-diagram-guide {
   stroke: #b8b8b5;
   stroke-dasharray: 3 5;
