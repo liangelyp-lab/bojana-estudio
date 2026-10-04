@@ -1174,7 +1174,7 @@ section[id] { scroll-margin-top: 96px; }
     white-space: normal;
   }
   .desktop-br {
-    display: none;
+    display: block;
   }
   .engineering-project-deliverables {
     max-width: none;
