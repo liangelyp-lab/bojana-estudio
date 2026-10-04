@@ -540,9 +540,9 @@
     window.addEventListener('scroll', () => {
       const y = window.scrollY;
       const downward = y > previousY;
-      const upward = y < previousY;
+      const upward = y < previousY - 1;
       previousY = y;
-      if (upward && !galleryReleased && !enteringProject && !exiting) {
+      if (upward && !galleryReleased && !enteringProject && !exitPending && !exiting) {
         releaseGallery();
         return;
       }
@@ -642,6 +642,8 @@
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) exitKeyHeld = false;
     });
     document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
+      // The gallery cue uses the coordinated photo and page exit animation.
+      if (link.matches('.project-scroll-cue')) return;
       releaseGallery();
       bypassUntil = performance.now() + 1600;
       enteredNextProject = link.getAttribute('href') !== '#proyectos';
