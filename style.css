@@ -1183,6 +1183,11 @@ section[id] { scroll-margin-top: 96px; }
   }
   .engineering-project-deliverables li {
     font-size: 11.5px;
+    text-align: left;
+  }
+  .engineering-project-deliverables strong {
+    display: block;
+    margin-bottom: 2px;
   }
 
   /* Timeline a un lado (vertical) */
