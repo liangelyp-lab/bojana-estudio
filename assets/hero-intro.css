@@ -127,6 +127,28 @@
 .hero-scroll-cue:hover,
 .hero-scroll-cue:focus-visible { color: rgba(255,255,255,.9); }
 .hero-scroll-cue.is-hidden { visibility: hidden; pointer-events: none; }
+.project-scroll-cue {
+  position: absolute;
+  z-index: 4;
+  right: var(--project-gutter);
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px));
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 0;
+  color: rgba(255,255,255,.55);
+  text-decoration: none;
+  cursor: pointer;
+}
+.project-scroll-cue svg {
+  width: 14px;
+  height: 20px;
+  animation: hero-scroll-pulse 1.8s ease-in-out infinite;
+}
+.project-scroll-cue:hover,
+.project-scroll-cue:focus-visible { color: rgba(255,255,255,.9); }
 @keyframes hero-scroll-pulse {
   0%, 100% { transform: translateY(0); opacity: .45; }
   50% { transform: translateY(4px); opacity: .9; }
@@ -234,7 +256,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-intro-enabled .hero-service-word { transition: none; }
-  .hero-scroll-cue svg { animation: none; }
+  .hero-scroll-cue svg,
+  .project-scroll-cue svg { animation: none; }
   .hero-intro-enabled .site-header::after,
   .hero-intro-enabled .site-header .site-nav,
   .hero-intro-enabled .site-header .menu-toggle { transition: none; }

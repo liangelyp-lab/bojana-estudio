@@ -1,6 +1,36 @@
 <!doctype html>
 <html lang="es">
 <head>
+  <script>
+    (function () {
+      try {
+        var proto = window.Window ? window.Window.prototype : Object.getPrototypeOf(window);
+        var orig = window.fetch;
+        var curr = orig ? function () { return orig.apply(window, arguments); } : undefined;
+        try {
+          Object.defineProperty(window, 'fetch', {
+            get: function () { return curr; },
+            set: function (v) { curr = v; },
+            configurable: true,
+            enumerable: true
+          });
+        } catch (e) {}
+        if (proto) {
+          try {
+            var desc = Object.getOwnPropertyDescriptor(proto, 'fetch');
+            if (desc && !desc.set && desc.configurable) {
+              Object.defineProperty(proto, 'fetch', {
+                get: desc.get || function () { return curr; },
+                set: function (v) { curr = v; },
+                configurable: true,
+                enumerable: true
+              });
+            }
+          } catch (e) {}
+        }
+      } catch (e) {}
+    })();
+  </script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="Bojana Estudio — Arquitectura, Ingeniería Civil, Diseño y Construcción. Buenos Aires, Argentina · trabajo remoto global." />
@@ -109,7 +139,180 @@
               <p class="gallery-label" aria-live="polite" aria-atomic="true">Acceso SUM</p>
             </div>
           </div>
+          <a class="project-scroll-cue" href="#ingenieria" aria-label="Ver siguiente proyecto">
+            <svg viewBox="0 0 18 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3v16m-5-5 5 5 5-5" /></svg>
+          </a>
         </div>
+      </div>
+    </section>
+
+    <section id="ingenieria" class="engineering-project shell" aria-labelledby="engineering-title">
+      <div class="engineering-project-grid">
+        <div class="engineering-project-meta">
+          <p class="engineering-project-kicker">Cálculo estructural - Soporte de bandejas portacables - STAAD.Pro · ASCE 7-16</p>
+        </div>
+        <div class="engineering-project-copy">
+          <h2 id="engineering-title">Del modelo a la<br class="desktop-br">verificación, cada<br class="desktop-br">elemento calculado.</h2>
+          <ul class="engineering-project-deliverables" aria-label="Entregables del cálculo estructural">
+            <li>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 1.5h4.8l2.7 2.7v10.3H4.5zM9.3 1.5v2.7H12M6.5 7h3.5M6.5 9.5h3.5M6.5 12h2.2" /></svg>
+              <span><strong>Memoria de cálculo:</strong> Modelo, cargas y verificaciones.</span>
+            </li>
+            <li>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13.5h12M3.5 11V7.5h2V11M7 11V3.5h2V11M10.5 11V5.5h2V11" /></svg>
+              <span><strong>Reacciones en apoyos:</strong> Datos para el diseño de fundaciones.</span>
+            </li>
+          </ul>
+        </div>
+        <ol class="engineering-project-steps" aria-label="Etapas del cálculo estructural"></ol>
+
+        <figure class="engineering-project-figure">
+          <svg viewBox="0 0 520 470" role="img" aria-labelledby="engineering-diagram-title engineering-diagram-description">
+            <title id="engineering-diagram-title">Verificación estructural de un soporte de bandejas portacables</title>
+            <desc id="engineering-diagram-description">El esquema recorre el modelo estructural, las cargas aplicadas, la deformación calculada y la verificación de resistencia.</desc>
+          </svg>
+        </figure>
+
+        <div class="engineering-project-description-box" aria-live="polite">
+          <p class="engineering-project-description-text"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Divider con la siguiente sección -->
+    <section class="bj-divider" aria-label="Servicios de estructura" data-active-group="1">
+      <div class="bj-divider__track">
+        <ul class="bj-divider__group bj-divider__group--1" aria-label="Servicios de estructura 1">
+        <li class="bj-divider__item">
+          <svg id="bj-duotono-blanco-losas-l" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 64" width="128" height="64" role="img" aria-label="Losas">
+            <style>
+              #bj-duotono-blanco-losas-l .l{fill:none;stroke:var(--c,#FFFFFF);stroke-linecap:round;stroke-linejoin:round}
+              #bj-duotono-blanco-losas-l .t{font-family:Inter,'Helvetica Neue',Arial,system-ui,sans-serif;font-weight:600;fill:var(--c,#FFFFFF)}
+              @keyframes draw{0%{stroke-dashoffset:1}35%,80%{stroke-dashoffset:0}95%,100%{stroke-dashoffset:-1}}
+              @keyframes draw1{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+              @keyframes fade{0%,25%{opacity:0}40%,80%{opacity:1}95%,100%{opacity:0}}
+              @keyframes fade1{from{opacity:0}to{opacity:1}}
+              @keyframes frame{0%{opacity:0}10%,85%{opacity:1}100%{opacity:0}}
+              @keyframes pop{0%{transform:scale(0)}12%,85%{transform:scale(1)}100%{transform:scale(0)}}
+              @keyframes fillin{0%,30%{fill-opacity:0}50%,80%{fill-opacity:.2}95%,100%{fill-opacity:0}}
+              @keyframes txt{0%,20%{opacity:0;transform:translateX(-4px)}40%,80%{opacity:1;transform:none}95%,100%{opacity:0}}
+              @keyframes txt1{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}
+              #bj-duotono-blanco-losas-l .d{stroke-dasharray:1;stroke-dashoffset:1}
+              #bj-duotono-blanco-losas-l .f{stroke-dasharray:1 2.5;opacity:0}
+              #bj-duotono-blanco-losas-l .d{stroke-width:2;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*.1s)}
+              #bj-duotono-blanco-losas-l .d.z{fill:var(--c,#FFFFFF);fill-opacity:0;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite,fillin 4.5s ease-in-out infinite;animation-delay:calc(var(--i)*.1s),0s}
+              #bj-duotono-blanco-losas-l .f{stroke-width:1.4;animation:fade 4.5s ease-in-out infinite;animation-delay:.9s}
+              #bj-duotono-blanco-losas-l .t{animation:txt 4.5s ease-out infinite}
+              @media (prefers-reduced-motion:reduce){#bj-duotono-blanco-losas-l *{animation:none!important}#bj-duotono-blanco-losas-l .d{stroke-dashoffset:0}#bj-duotono-blanco-losas-l .f,#bj-duotono-blanco-losas-l .fr,#bj-duotono-blanco-losas-l .n,#bj-duotono-blanco-losas-l .t{opacity:1;transform:none}#bj-duotono-blanco-losas-l .d.z{fill-opacity:.2}}
+            </style>
+            <path class="l d z" style="--i:0" pathLength="1" d="M6 20h52v12H6z"/>
+            <path class="l d" style="--i:1" pathLength="1" d="M10 32v22"/>
+            <path class="l d" style="--i:2" pathLength="1" d="M54 32v22"/>
+            <path class="l d" style="--i:3" pathLength="1" d="M4 54h12"/>
+            <path class="l d" style="--i:4" pathLength="1" d="M48 54h12"/>
+            <path class="l d" style="--i:5" pathLength="1" d="M22 32v8"/>
+            <path class="l d" style="--i:6" pathLength="1" d="M32 32v8"/>
+            <path class="l d" style="--i:7" pathLength="1" d="M42 32v8"/>
+            <path class="l f" style="--i:8" d="M14 26h36"/>
+            <text class="t" x="74" y="32.0" font-size="18" dominant-baseline="central">Losas</text>
+          </svg>
+        </li>
+        <li class="bj-divider__item">
+          <svg id="bj-duotono-blanco-vigas-l" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 64" width="124" height="64" role="img" aria-label="Vigas">
+            <style>
+              #bj-duotono-blanco-vigas-l .l{fill:none;stroke:var(--c,#FFFFFF);stroke-linecap:round;stroke-linejoin:round}
+              #bj-duotono-blanco-vigas-l .t{font-family:Inter,'Helvetica Neue',Arial,system-ui,sans-serif;font-weight:600;fill:var(--c,#FFFFFF)}
+              #bj-duotono-blanco-vigas-l .d{stroke-dasharray:1;stroke-dashoffset:1}
+              #bj-duotono-blanco-vigas-l .f{stroke-dasharray:1 2.5;opacity:0}
+              #bj-duotono-blanco-vigas-l .d{stroke-width:2;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*.1s)}
+              #bj-duotono-blanco-vigas-l .d.z{fill:var(--c,#FFFFFF);fill-opacity:0;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite,fillin 4.5s ease-in-out infinite;animation-delay:calc(var(--i)*.1s),0s}
+              #bj-duotono-blanco-vigas-l .f{stroke-width:1.4;animation:fade 4.5s ease-in-out infinite;animation-delay:.9s}
+              #bj-duotono-blanco-vigas-l .t{animation:txt 4.5s ease-out infinite}
+              @media (prefers-reduced-motion:reduce){#bj-duotono-blanco-vigas-l *{animation:none!important}#bj-duotono-blanco-vigas-l .d{stroke-dashoffset:0}#bj-duotono-blanco-vigas-l .f,#bj-duotono-blanco-vigas-l .fr,#bj-duotono-blanco-vigas-l .n,#bj-duotono-blanco-vigas-l .t{opacity:1;transform:none}#bj-duotono-blanco-vigas-l .d.z{fill-opacity:.2}}
+            </style>
+            <path class="l d z" style="--i:0" pathLength="1" d="M6 14h52v8H6z"/>
+            <path class="l d z" style="--i:1" pathLength="1" d="M6 42h52v8H6z"/>
+            <path class="l d" style="--i:2" pathLength="1" d="M32 22v20"/>
+            <path class="l d" style="--i:3" pathLength="1" d="M14 22v20"/>
+            <path class="l d" style="--i:4" pathLength="1" d="M50 22v20"/>
+            <text class="t" x="74" y="32.0" font-size="18" dominant-baseline="central">Vigas</text>
+          </svg>
+        </li>
+        <li class="bj-divider__item">
+          <svg id="bj-duotono-blanco-estructura-antisismica-l" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 64" width="270" height="64" role="img" aria-label="Estructura antisísmica">
+            <style>
+              #bj-duotono-blanco-estructura-antisismica-l .l{fill:none;stroke:var(--c,#FFFFFF);stroke-linecap:round;stroke-linejoin:round}
+              #bj-duotono-blanco-estructura-antisismica-l .t{font-family:Inter,'Helvetica Neue',Arial,system-ui,sans-serif;font-weight:600;fill:var(--c,#FFFFFF)}
+              #bj-duotono-blanco-estructura-antisismica-l .d{stroke-dasharray:1;stroke-dashoffset:1}
+              #bj-duotono-blanco-estructura-antisismica-l .f{stroke-dasharray:1 2.5;opacity:0}
+              #bj-duotono-blanco-estructura-antisismica-l .d{stroke-width:2;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*.1s)}
+              #bj-duotono-blanco-estructura-antisismica-l .d.z{fill:var(--c,#FFFFFF);fill-opacity:0;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite,fillin 4.5s ease-in-out infinite;animation-delay:calc(var(--i)*.1s),0s}
+              #bj-duotono-blanco-estructura-antisismica-l .f{stroke-width:1.4;animation:fade 4.5s ease-in-out infinite;animation-delay:.9s}
+              #bj-duotono-blanco-estructura-antisismica-l .t{animation:txt 4.5s ease-out infinite}
+              @media (prefers-reduced-motion:reduce){#bj-duotono-blanco-estructura-antisismica-l *{animation:none!important}#bj-duotono-blanco-estructura-antisismica-l .d{stroke-dashoffset:0}#bj-duotono-blanco-estructura-antisismica-l .f,#bj-duotono-blanco-estructura-antisismica-l .fr,#bj-duotono-blanco-estructura-antisismica-l .n,#bj-duotono-blanco-estructura-antisismica-l .t{opacity:1;transform:none}#bj-duotono-blanco-estructura-antisismica-l .d.z{fill-opacity:.2}}
+            </style>
+            <path class="l d z" style="--i:0" pathLength="1" d="M12 8h40v36H12z"/>
+            <path class="l d" style="--i:1" pathLength="1" d="M12 8l40 36"/>
+            <path class="l d" style="--i:2" pathLength="1" d="M52 8L12 44"/>
+            <path class="l d" style="--i:3" pathLength="1" d="M12 26h40"/>
+            <path class="l d" style="--i:4" pathLength="1" d="M4 54c5-6 8 6 13 0s8 6 13 0 8 6 13 0 8 6 13 0"/>
+            <text class="t" x="74" y="32.0" font-size="18" dominant-baseline="central">Estructura antisísmica</text>
+          </svg>
+        </li>
+      </ul>
+      <ul class="bj-divider__group bj-divider__group--2" aria-label="Servicios de estructura 2">
+        <li class="bj-divider__item">
+          <svg id="bj-duotono-blanco-columna-hormigon-armado-l" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 337 64" width="337" height="64" role="img" aria-label="Columna de hormigón armado">
+            <style>
+              #bj-duotono-blanco-columna-hormigon-armado-l .l{fill:none;stroke:var(--c,#FFFFFF);stroke-linecap:round;stroke-linejoin:round}
+              #bj-duotono-blanco-columna-hormigon-armado-l .t{font-family:Inter,'Helvetica Neue',Arial,system-ui,sans-serif;font-weight:600;fill:var(--c,#FFFFFF)}
+              #bj-duotono-blanco-columna-hormigon-armado-l .d{stroke-dasharray:1;stroke-dashoffset:1}
+              #bj-duotono-blanco-columna-hormigon-armado-l .f{stroke-dasharray:1 2.5;opacity:0}
+              #bj-duotono-blanco-columna-hormigon-armado-l .d{stroke-width:2;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*.1s)}
+              #bj-duotono-blanco-columna-hormigon-armado-l .d.z{fill:var(--c,#FFFFFF);fill-opacity:0;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite,fillin 4.5s ease-in-out infinite;animation-delay:calc(var(--i)*.1s),0s}
+              #bj-duotono-blanco-columna-hormigon-armado-l .f{stroke-width:1.4;animation:fade 4.5s ease-in-out infinite;animation-delay:.9s}
+              #bj-duotono-blanco-columna-hormigon-armado-l .t{animation:txt 4.5s ease-out infinite}
+              @media (prefers-reduced-motion:reduce){#bj-duotono-blanco-columna-hormigon-armado-l *{animation:none!important}#bj-duotono-blanco-columna-hormigon-armado-l .d{stroke-dashoffset:0}#bj-duotono-blanco-columna-hormigon-armado-l .f,#bj-duotono-blanco-columna-hormigon-armado-l .fr,#bj-duotono-blanco-columna-hormigon-armado-l .n,#bj-duotono-blanco-columna-hormigon-armado-l .t{opacity:1;transform:none}#bj-duotono-blanco-columna-hormigon-armado-l .d.z{fill-opacity:.2}}
+            </style>
+            <path class="l d z" style="--i:0" pathLength="1" d="M20 6h24v52H20z"/>
+            <path class="l d" style="--i:1" pathLength="1" d="M26 6v52"/>
+            <path class="l d" style="--i:2" pathLength="1" d="M38 6v52"/>
+            <path class="l d" style="--i:3" pathLength="1" d="M20 16h24"/>
+            <path class="l d" style="--i:4" pathLength="1" d="M20 28h24"/>
+            <path class="l d" style="--i:5" pathLength="1" d="M20 40h24"/>
+            <path class="l d" style="--i:6" pathLength="1" d="M20 52h24"/>
+            <path class="l d" style="--i:7" pathLength="1" d="M14 6h36"/>
+            <path class="l d" style="--i:8" pathLength="1" d="M14 58h36"/>
+            <text class="t" x="74" y="32.0" font-size="18" dominant-baseline="central">Columna de hormigón armado</text>
+          </svg>
+        </li>
+        <li class="bj-divider__item">
+          <svg id="bj-duotono-blanco-cimientos-bases-l" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 231 64" width="231" height="64" role="img" aria-label="Cimientos / Bases">
+            <style>
+              #bj-duotono-blanco-cimientos-bases-l .l{fill:none;stroke:var(--c,#FFFFFF);stroke-linecap:round;stroke-linejoin:round}
+              #bj-duotono-blanco-cimientos-bases-l .t{font-family:Inter,'Helvetica Neue',Arial,system-ui,sans-serif;font-weight:600;fill:var(--c,#FFFFFF)}
+              #bj-duotono-blanco-cimientos-bases-l .d{stroke-dasharray:1;stroke-dashoffset:1}
+              #bj-duotono-blanco-cimientos-bases-l .f{stroke-dasharray:1 2.5;opacity:0}
+              #bj-duotono-blanco-cimientos-bases-l .d{stroke-width:2;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite;animation-delay:calc(var(--i)*.1s)}
+              #bj-duotono-blanco-cimientos-bases-l .d.z{fill:var(--c,#FFFFFF);fill-opacity:0;animation:draw 4.5s cubic-bezier(.65,0,.35,1) infinite,fillin 4.5s ease-in-out infinite;animation-delay:calc(var(--i)*.1s),0s}
+              #bj-duotono-blanco-cimientos-bases-l .f{stroke-width:1.4;animation:fade 4.5s ease-in-out infinite;animation-delay:.9s}
+              #bj-duotono-blanco-cimientos-bases-l .t{animation:txt 4.5s ease-out infinite}
+              @media (prefers-reduced-motion:reduce){#bj-duotono-blanco-cimientos-bases-l *{animation:none!important}#bj-duotono-blanco-cimientos-bases-l .d{stroke-dashoffset:0}#bj-duotono-blanco-cimientos-bases-l .f,#bj-duotono-blanco-cimientos-bases-l .fr,#bj-duotono-blanco-cimientos-bases-l .n,#bj-duotono-blanco-cimientos-bases-l .t{opacity:1;transform:none}#bj-duotono-blanco-cimientos-bases-l .d.z{fill-opacity:.2}}
+            </style>
+            <path class="l d z" style="--i:0" pathLength="1" d="M26 6h12v24H26z"/>
+            <path class="l d z" style="--i:1" pathLength="1" d="M12 30h40v12H12z"/>
+            <path class="l d" style="--i:2" pathLength="1" d="M4 30h8"/>
+            <path class="l d" style="--i:3" pathLength="1" d="M52 30h8"/>
+            <path class="l d" style="--i:4" pathLength="1" d="M8 50l-4 6"/>
+            <path class="l d" style="--i:5" pathLength="1" d="M20 50l-4 6"/>
+            <path class="l d" style="--i:6" pathLength="1" d="M32 50l-4 6"/>
+            <path class="l d" style="--i:7" pathLength="1" d="M44 50l-4 6"/>
+            <path class="l d" style="--i:8" pathLength="1" d="M56 50l-4 6"/>
+            <path class="l f" style="--i:9" d="M20 36h24"/>
+            <text class="t" x="74" y="32.0" font-size="18" dominant-baseline="central">Cimientos / Bases</text>
+          </svg>
+        </li>
+      </ul>
       </div>
     </section>
 

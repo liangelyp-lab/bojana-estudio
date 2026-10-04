@@ -299,6 +299,7 @@
   const rail = galleryStage?.querySelector('.gallery-rail');
   const slides = rail ? [...rail.querySelectorAll('.gallery-slide')] : [];
   const galleryLabel = galleryStage?.querySelector('.gallery-label');
+  const nextProjectSection = document.querySelector('#ingenieria');
   const studioSection = document.querySelector('#estudio');
   if (projectTrack && projectCard && galleryStage && rail && slides.length && galleryLabel) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -337,7 +338,7 @@
     let exitFrame = 0;
     let exitPending = false;
     let exiting = false;
-    let enteredStudio = false;
+    let enteredNextProject = false;
     let previousY = window.scrollY;
     let bypassUntil = 0;
     let lastWheelAt = -Infinity;
@@ -357,9 +358,9 @@
     const trackStart = () => window.scrollY + projectTrack.getBoundingClientRect().top - stickyTop;
     const playbackLead = () => resumedPass ? 0 : entryLead;
     const exitStart = () => trackStart() + passLast - passStart + extraTravel - playbackLead();
-    const studioTarget = () => window.scrollY + studioSection.getBoundingClientRect().top
+    const nextProjectTarget = () => window.scrollY + nextProjectSection.getBoundingClientRect().top
       - (header?.getBoundingClientRect().bottom || 0);
-    const atStudio = () => studioSection && Math.abs(window.scrollY - studioTarget()) < 2;
+    const atNextProject = () => nextProjectSection && Math.abs(window.scrollY - nextProjectTarget()) < 2;
     const photoPosition = () => cycleLength ? ((rendered % cycleLength) + cycleLength) % cycleLength : rendered;
     const sizeTrack = () => {
       const scrollRoom = galleryReleased ? 0 : Math.max(0, passLast - passStart + extraTravel - playbackLead());
@@ -403,7 +404,7 @@
       exitWheelSequence = exitTouchSequence = -1;
       exitKeyHeld = false;
     };
-    const enterStudio = () => {
+    const enterNextProject = () => {
       exitPending = false;
       exiting = true;
       cancelAnimationFrame(photoFrame);
@@ -415,8 +416,8 @@
       const slide = (now) => {
         const progress = reducedMotion.matches ? 1 : Math.min(1, (now - started) / 520);
         const eased = progress < .5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
-        const to = Math.max(0, Math.min(studioTarget(), document.documentElement.scrollHeight - window.innerHeight));
-        // One animation moves Studio to the header and rewinds the extra 30%.
+        const to = Math.max(0, Math.min(nextProjectTarget(), document.documentElement.scrollHeight - window.innerHeight));
+        // One animation moves the next project to the header and rewinds the extra 30%.
         target = rendered = fromX + (passLast - fromX) * eased;
         paintPhotos();
         window.scrollTo({ top: fromY + (to - fromY) * eased, behavior: 'instant' });
@@ -425,7 +426,7 @@
         else {
           exitFrame = 0;
           exiting = false;
-          enteredStudio = true;
+          enteredNextProject = true;
           target = rendered = passLast;
           paintPhotos();
         }
@@ -497,7 +498,7 @@
       passLast = travel + (passStart >= travel - .5 ? cycleLength : 0);
       galleryReleased = false;
       resumedPass = true;
-      enteredStudio = false;
+      enteredNextProject = false;
       entryAligned = false;
       sizeTrack();
       alignProject(true);
@@ -516,21 +517,21 @@
       rendered += (target - rendered) * (reducedMotion.matches ? 1 : 1 - Math.exp(-dt / 55));
       if (Math.abs(target - rendered) < .1 || (exitPending && Math.abs(target - rendered) < .5)) rendered = target;
       paintPhotos();
-      if (exitPending && rendered === target) { enterStudio(); return; }
+      if (exitPending && rendered === target) { enterNextProject(); return; }
       if (rendered !== target) photoFrame = requestAnimationFrame(animatePhotos);
       else { photoFrame = 0; previousPhotoTime = 0; }
     };
     const requestExit = () => {
-      if (!studioSection || galleryReleased || exitPending || exiting || performance.now() < bypassUntil) return;
+      if (!nextProjectSection || galleryReleased || exitPending || exiting || performance.now() < bypassUntil) return;
       exitPending = true;
-      enteredStudio = false;
+      enteredNextProject = false;
       exitWheelSequence = wheelSequence;
       exitTouchSequence = touchSequence;
       target = passLast + extraTravel;
       if (!photoFrame) photoFrame = requestAnimationFrame(animatePhotos);
     };
     const updatePhotos = () => {
-      if (galleryReleased || resumingProject || enteredStudio || exitPending || exiting) return;
+      if (galleryReleased || resumingProject || enteredNextProject || exitPending || exiting) return;
       const distance = window.scrollY - trackStart() + playbackLead();
       // Only forward page movement advances the remembered photo position.
       target = passStart + Math.max(0, Math.min(passLast - passStart + extraTravel, distance));
@@ -554,8 +555,8 @@
         else if (y >= trackStart() - .5) entryAligned = true;
         else if (downward && y >= trackStart() - entryLead * .72) alignProject();
       }
-      if (y < exitStart() - 1 && !exitPending && !exiting) enteredStudio = false;
-      if (downward && !enteredStudio && !exitPending && !exiting
+      if (y < exitStart() - 1 && !exitPending && !exiting) enteredNextProject = false;
+      if (downward && !enteredNextProject && !exitPending && !exiting
         && performance.now() >= bypassUntil && y >= exitStart() - .5) requestExit();
       updatePhotos();
     }, { passive: true });
@@ -572,14 +573,14 @@
         event.preventDefault();
         return;
       }
-      if (enteredStudio && wheelSequence === exitWheelSequence && atStudio()) {
+      if (enteredNextProject && wheelSequence === exitWheelSequence && atNextProject()) {
         event.preventDefault();
         return;
       }
       const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1);
       if (captureProjectEntry(delta)) { event.preventDefault(); return; }
       const y = window.scrollY;
-      if (!galleryReleased && !enteredStudio && now >= bypassUntil && y >= trackStart() - entryLead
+      if (!galleryReleased && !enteredNextProject && now >= bypassUntil && y >= trackStart() - entryLead
         && y < exitStart() && y + delta >= exitStart()) {
         event.preventDefault();
         requestExit();
@@ -603,9 +604,9 @@
       if (enteringProject) { if (event.cancelable) event.preventDefault(); return; }
       if (captureProjectEntry(down)) { if (event.cancelable) event.preventDefault(); return; }
       const y = window.scrollY;
-      const crossing = !galleryReleased && !enteredStudio && performance.now() >= bypassUntil
+      const crossing = !galleryReleased && !enteredNextProject && performance.now() >= bypassUntil
         && y >= trackStart() - entryLead && y < exitStart() && y + down >= exitStart();
-      if (exitPending || exiting || (enteredStudio && touchSequence === exitTouchSequence && atStudio()) || crossing) {
+      if (exitPending || exiting || (enteredNextProject && touchSequence === exitTouchSequence && atNextProject()) || crossing) {
         if (event.cancelable) event.preventDefault();
         if (exitPending || exiting) exitTouchSequence = touchSequence;
         if (crossing) requestExit();
@@ -620,18 +621,18 @@
       if (['Escape', 'Home', 'End', 'ArrowUp', 'PageUp'].includes(event.key)
         || (event.key === ' ' && event.shiftKey)) {
         releaseGallery();
-        if (event.key === 'End') enteredStudio = true;
+        if (event.key === 'End') enteredNextProject = true;
         return;
       }
       if (!['ArrowDown', 'PageDown', ' '].includes(event.key)) return;
-      if (enteringProject || exitPending || exiting || (exitKeyHeld && event.repeat && atStudio())) {
+      if (enteringProject || exitPending || exiting || (exitKeyHeld && event.repeat && atNextProject())) {
         event.preventDefault();
         return;
       }
       const y = window.scrollY;
       const amount = event.key === 'ArrowDown' ? 40 : window.innerHeight * .85;
       if (captureProjectEntry(amount)) { event.preventDefault(); return; }
-      if (!galleryReleased && !enteredStudio && y >= trackStart() - entryLead && y < exitStart() && y + amount >= exitStart()) {
+      if (!galleryReleased && !enteredNextProject && y >= trackStart() - entryLead && y < exitStart() && y + amount >= exitStart()) {
         event.preventDefault();
         exitKeyHeld = true;
         requestExit();
@@ -643,7 +644,7 @@
     document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
       releaseGallery();
       bypassUntil = performance.now() + 1600;
-      enteredStudio = link.getAttribute('href') !== '#proyectos';
+      enteredNextProject = link.getAttribute('href') !== '#proyectos';
     }));
 
     const measure = () => {
@@ -733,7 +734,7 @@
       measure();
       previousY = window.scrollY;
       entryAligned = window.scrollY >= trackStart() - .5;
-      enteredStudio = studioSection && window.scrollY >= studioTarget() - 1;
+      enteredNextProject = nextProjectSection && window.scrollY >= nextProjectTarget() - 1;
     });
     window.addEventListener('pagehide', () => {
       cancelEntry();
@@ -749,7 +750,120 @@
       if (header) layoutObserver.observe(header);
     }
     document.fonts?.ready.then(scheduleMeasure);
+    const projectCue = projectCard.querySelector('.project-scroll-cue');
+    if (projectCue) {
+      projectCue.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (galleryReleased) {
+          nextProjectSection?.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          requestExit();
+        }
+      });
+    }
     reducedMotion.addEventListener('change', updatePhotos);
     measure();
+  }
+})();
+
+/* Ingeniería estructural: modelo, cargas, deformación y verificación. */
+(()=>{
+const root=document.querySelector('.engineering-project');
+if(!root)return;
+const svg=root.querySelector('.engineering-project-figure svg'),NS='http://www.w3.org/2000/svg';
+const mk=(n,a,c)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(c)e.className.baseVal=c;svg.appendChild(e);return e};
+const txt=(x,y,s,c)=>{const e=mk('text',{x,y},'engineering-diagram-text '+(c||''));e.textContent=s;return e};
+const STEPS=[
+ ['Modelo','Modelo de elementos finitos en STAAD.Pro, con perfiles de acero ASTM A36 y la geometría de apoyos tal como se construye.'],
+ ['Cargas','Peso propio, sobrecarga, nieve, viento y sismo, combinados en 13 combinaciones de resistencia y 16 de servicio.'],
+ ['Deformación','Desplazamiento calculado de 0,034 in contra 0,153 in admisibles (L/400). En el dibujo la deformación está ampliada.'],
+ ['Verificación','Miembro 1 (HSS4X4X.125): relación demanda/capacidad 0,207. Debe ser menor a 1,00: cumple.']];
+const H=[0,138,222,307],B=[[130,370],[290,415]],D=18,N=14;
+const X=(s,h,t)=>B[s][0]+D*t*(h/307)**2,Y=(s,h)=>B[s][1]-h;
+const cl=v=>Math.max(0,Math.min(1,v));
+const dr=(n,a,c)=>{const e=mk(n,Object.assign({pathLength:1},a),c);e.style.strokeDasharray='1 1';return e};
+// estructura
+const ghost=[0,1].map(()=>dr('path',{},'engineering-diagram-guide')),ghR=[1,2,3].map(()=>dr('line',{},'engineering-diagram-guide'));
+const cols=[0,1].map(()=>dr('path',{})),rungs=[1,2,3].map(()=>dr('line',{})),trays=[1,2,3].map(()=>dr('line',{}));
+const base=[0,1].map(s=>dr('path',{d:`M${B[s][0]-16} ${B[s][1]+10}h32M${B[s][0]-10} ${B[s][1]+10}l-6 8M${B[s][0]} ${B[s][1]+10}l-6 8M${B[s][0]+10} ${B[s][1]+10}l-6 8`}));
+const hi=mk('path',{},'engineering-diagram-accent');hi.style.strokeWidth=4;
+// cotas
+const dims=[txt(70,300,'27,56 in'),txt(70,200,'16,93 in'),txt(70,110,'16,93 in'),txt(150,455,'35,43 in')];
+// cargas
+const gArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent')),wArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent'));
+const lblG=txt(0,0,'D · L · S','engineering-diagram-accent-text'),lblW=txt(0,0,'W · E','engineering-diagram-accent-text'),lblD=txt(0,0,'Δ real 0,034 in  ·  Δ adm 0,153 in','engineering-diagram-accent-text'),lblR=txt(0,0,'0,207  CUMPLE','engineering-diagram-accent-text');
+const arrow=(x1,y1,x2,y2)=>{const a=Math.atan2(y2-y1,x2-x1),h=7,f=d=>`${x2-h*Math.cos(a+d)} ${y2-h*Math.sin(a+d)}`;return `M${x1} ${y1}L${x2} ${y2}M${f(.5)}L${x2} ${y2}L${f(-.5)}`};
+const colPath=(s,t)=>{let d='';for(let i=0;i<=N;i++){const h=307*i/N;d+=(i?'L':'M')+X(s,h,t)+' '+Y(s,h)}return d};
+let draw=0,ld=0,df=0,hl=0,step=0,tgt={ld:0,df:0,hl:0},reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function render(){
+ ghost.forEach((e,s)=>e.setAttribute('d',colPath(s,0)));
+ ghR.forEach((e,i)=>{const h=H[i+1];e.setAttribute('x1',X(0,h,0));e.setAttribute('y1',Y(0,h));e.setAttribute('x2',X(1,h,0));e.setAttribute('y2',Y(1,h))});
+ cols.forEach((e,s)=>e.setAttribute('d',colPath(s,df)));
+ [...ghost,...ghR].forEach(e=>e.style.opacity=df*.4);
+ rungs.forEach((e,i)=>{const h=H[i+1],x1=X(0,h,df),y1=Y(0,h),x2=X(1,h,df),y2=Y(1,h);
+  e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);
+  const T=trays[i];T.setAttribute('x1',x1+4);T.setAttribute('y1',y1-8);T.setAttribute('x2',x2+4);T.setAttribute('y2',y2-8);T.style.opacity=.55;
+  const mx=(x1+x2)/2,my=(y1+y2)/2-10;gArr[i].setAttribute('d',arrow(mx,my-52,mx,my-6));
+  wArr[i].setAttribute('d',arrow(x1-62,y1,x1-8,y1));if(i==2){lblG.setAttribute('x',mx+10);lblG.setAttribute('y',my-34);lblW.setAttribute('x',x1-70);lblW.setAttribute('y',y1-10)}});
+ [...ghost,...cols,...rungs,...trays,...base].forEach((e,i)=>e.style.strokeDashoffset=1-cl(draw*1.6-i*.06));
+ hi.setAttribute('d',colPath(0,df).split('L').slice(0,5).join('L'));hi.style.opacity=hl;
+ dims.forEach(e=>e.style.opacity=cl(draw*3-2)*(1-ld)*.9);
+ gArr.concat(wArr,[lblG,lblW]).forEach(e=>e.style.opacity=ld);
+ lblD.setAttribute('x',270);lblD.setAttribute('y',60);lblD.style.opacity=df*(1-hl);
+ lblR.setAttribute('x',X(0,60,df)+14);lblR.setAttribute('y',Y(0,60));lblR.style.opacity=hl;
+}
+function tick(){
+ const k=reduce?1:.07;draw+=(1-draw)*(reduce?1:.03);ld+=(tgt.ld-ld)*k;df+=(tgt.df-df)*k;hl+=(tgt.hl-hl)*k;render();
+ requestAnimationFrame(tick)}
+// controles
+const ol=root.querySelector('.engineering-project-steps');
+const btns=STEPS.map((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.className='engineering-project-step';b.type='button';b.setAttribute('aria-label',s[0]);b.innerHTML=`<span class="engineering-project-step-label">${s[0]}</span><span class="engineering-project-step-description" aria-hidden="true">${s[1]}</span>`;b.onclick=()=>{auto=false;go(i)};li.appendChild(b);ol.appendChild(li);return b});
+function go(i){step=i;tgt={ld:+(i>=1),df:+(i>=2),hl:+(i>=3)};btns.forEach((b,j)=>{const active=j==i;b.parentElement.classList.toggle('is-active',active);b.setAttribute('aria-current',active);b.setAttribute('aria-expanded',active);b.querySelector('.engineering-project-step-description').setAttribute('aria-hidden',!active)});const descEl=root.querySelector('.engineering-project-description-text');if(descEl)descEl.textContent=STEPS[i][1];if(ol.scrollWidth>ol.clientWidth)ol.scrollTo({left:btns[i].parentElement.offsetLeft-18,behavior:reduce?'auto':'smooth'})}
+let auto=!reduce,seen=false,timer;go(reduce?3:0);
+new IntersectionObserver(([e])=>{seen=e.isIntersecting;if(seen&&!timer)timer=setInterval(()=>{if(auto&&seen)go((step+1)%4)},3200)},{threshold:.35}).observe(root);
+tick();
+})();
+
+/* Pausa las animaciones hasta que el divider es visible */
+document.querySelectorAll('.bj-divider').forEach(function(el){
+  if(!('IntersectionObserver' in window)) return;
+  el.classList.add('is-armed');
+  new IntersectionObserver(function(e,o){
+    if(e[0].isIntersecting){ el.classList.add('is-in'); o.disconnect(); }
+  },{threshold:.3}).observe(el);
+});
+
+/* Alternancia en mobile: una sola línea con 3 íconos y luego los otros 2 sucesivamente */
+(function() {
+  const divider = document.querySelector('.bj-divider');
+  if (!divider) return;
+  let activeGroup = 1;
+  let timer = null;
+  const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+
+  function toggle() {
+    if (!isMobile()) return;
+    activeGroup = activeGroup === 1 ? 2 : 1;
+    divider.setAttribute('data-active-group', String(activeGroup));
+  }
+
+  function start() {
+    if (!timer) timer = setInterval(toggle, 3500);
+  }
+
+  function stop() {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting) start();
+      else stop();
+    }, { threshold: 0.15 }).observe(divider);
+  } else {
+    start();
   }
 })();
