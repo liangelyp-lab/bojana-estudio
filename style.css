@@ -875,12 +875,13 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-grid {
   height: 100%;
   display: grid;
-  grid-template-columns: 1.05fr .95fr 1.3fr 1.25fr;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: 1fr .95fr 1.5fr 1fr;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
   grid-template-areas:
     "kicker kicker figure empty"
     "title title figure empty"
-    "steps detail figure lead";
+    "steps steps figure lead"
+    "detail detail figure lead";
   column-gap: clamp(28px, 3.5vw, 56px);
   row-gap: clamp(22px, 3.5svh, 34px);
   align-items: start;
@@ -916,21 +917,34 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-steps {
   grid-area: steps;
   align-self: start;
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
-  width: min(100%, 112px);
+  width: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
 }
+.engineering-project-steps::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 5px;
+  left: 5px;
+  right: calc(25% - 5px);
+  height: 1px;
+  background: #d7d9da;
+}
+.engineering-project-steps li { position: relative; min-width: 0; }
 .engineering-project-step {
   appearance: none;
+  position: relative;
+  z-index: 1;
   width: 100%;
   margin: 0;
-  padding: 10px 2px 12px;
+  padding: 21px 8px 0 0;
   border: 0;
-  border-top: 1px solid #dededb;
   border-radius: 0;
   background: transparent;
   color: #777;
@@ -943,6 +957,18 @@ section[id] { scroll-margin-top: 96px; }
   cursor: pointer;
   transition: color .25s ease, border-color .25s ease;
 }
+.engineering-project-step::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #d7d9da;
+  box-shadow: 0 0 0 4px var(--paper);
+  transition: background-color .25s ease, transform .25s ease;
+}
 .engineering-project-step span {
   display: block;
   margin-bottom: 6px;
@@ -953,14 +979,17 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-step:hover,
 .engineering-project-step:focus-visible,
 .engineering-project-step[aria-current="true"] { color: var(--ink); }
-.engineering-project-step[aria-current="true"] { border-top-color: var(--ink); }
+.engineering-project-step:hover::before,
+.engineering-project-step:focus-visible::before,
+.engineering-project-step[aria-current="true"]::before { background: var(--ink); }
+.engineering-project-step[aria-current="true"]::before { transform: scale(1.12); }
 .engineering-project-step[aria-current="true"] span { color: var(--muted); }
 .engineering-project-detail {
   grid-area: detail;
   align-self: start;
   min-height: 0;
   max-width: 23ch;
-  margin: 9px 0 0;
+  margin: 0;
   color: #666;
   font-size: 14px;
   line-height: 1.55;
@@ -980,9 +1009,11 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-figure svg {
   grid-row: 2;
   display: block;
-  width: 100%;
+  width: 118%;
+  max-width: none;
   height: 100%;
   min-height: 0;
+  margin-left: -9%;
   overflow: visible;
 }
 .engineering-project-figure figcaption {
@@ -1022,16 +1053,16 @@ section[id] { scroll-margin-top: 96px; }
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: auto auto auto auto;
     grid-template-areas:
-      "kicker figure"
+      "kicker kicker"
       "title figure"
-      "steps figure"
+      "steps steps"
       "detail lead";
     gap: 36px;
   }
   .engineering-project h2 { max-width: 14ch; }
   .engineering-project-figure { width: 100%; height: auto; max-width: 680px; margin-inline: auto; }
-  .engineering-project-figure svg { height: auto; }
-  .engineering-project-steps { width: min(100%, 160px); }
+  .engineering-project-figure svg { width: 100%; height: auto; margin-left: 0; }
+  .engineering-project-steps { width: 100%; }
   .engineering-project-detail { margin-top: 0; }
 }
 @media (max-width: 520px) {
