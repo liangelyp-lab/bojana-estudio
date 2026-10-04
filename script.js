@@ -547,7 +547,8 @@
         return;
       }
       if (galleryReleased) {
-        if (downward && y >= trackStart() - entryLead * .72 && y < trackStart() + cardHeight) resumeGallery();
+        // Resume only at the gallery entrance, never from its outgoing edge.
+        if (downward && y >= trackStart() - entryLead * .72 && y <= trackStart() + 1) resumeGallery();
         return;
       }
       if (!enteringProject) {
