@@ -793,7 +793,7 @@ const hi=mk('path',{},'engineering-diagram-accent');hi.style.strokeWidth=4;
 // cotas
 const dims=[txt(70,300,'27,56 in'),txt(70,200,'16,93 in'),txt(70,110,'16,93 in'),txt(150,455,'35,43 in')];
 // cargas
-const gArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent')),wArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent'));
+const gArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent engineering-diagram-load-arrow')),wArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent engineering-diagram-load-arrow'));
 const lblG=txt(0,0,'D · L · S','engineering-diagram-accent-text'),lblW=txt(0,0,'W · E','engineering-diagram-accent-text'),lblD=txt(0,0,'Δ real 0,034 in  ·  Δ adm 0,153 in','engineering-diagram-accent-text'),lblR=txt(0,0,'0,207  CUMPLE','engineering-diagram-accent-text');
 const arrow=(x1,y1,x2,y2)=>{const a=Math.atan2(y2-y1,x2-x1),h=7,f=d=>`${x2-h*Math.cos(a+d)} ${y2-h*Math.sin(a+d)}`;return `M${x1} ${y1}L${x2} ${y2}M${f(.5)}L${x2} ${y2}L${f(-.5)}`};
 const colPath=(s,t)=>{let d='';for(let i=0;i<=N;i++){const h=307*i/N;d+=(i?'L':'M')+X(s,h,t)+' '+Y(s,h)}return d};
