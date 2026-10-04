@@ -789,12 +789,14 @@ const dr=(n,a,c)=>{const e=mk(n,Object.assign({pathLength:1},a),c);e.style.strok
 const ghost=[0,1].map(()=>dr('path',{},'engineering-diagram-guide')),ghR=[1,2,3].map(()=>dr('line',{},'engineering-diagram-guide'));
 const cols=[0,1].map(()=>dr('path',{})),rungs=[1,2,3].map(()=>dr('line',{})),trays=[1,2,3].map(()=>dr('line',{}));
 const base=[0,1].map(s=>dr('path',{d:`M${B[s][0]-16} ${B[s][1]+10}h32M${B[s][0]-10} ${B[s][1]+10}l-6 8M${B[s][0]} ${B[s][1]+10}l-6 8M${B[s][0]+10} ${B[s][1]+10}l-6 8`}));
-const hi=mk('path',{},'engineering-diagram-accent');hi.style.strokeWidth=4;
+const hi=mk('path',{},'engineering-diagram-accent engineering-diagram-verification');hi.style.strokeWidth=4;
 // cotas
 const dims=[txt(70,300,'27,56 in'),txt(70,200,'16,93 in'),txt(70,110,'16,93 in'),txt(150,455,'35,43 in')];
 // cargas
 const gArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent engineering-diagram-load-arrow')),wArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent engineering-diagram-load-arrow'));
 const lblG=txt(0,0,'D · L · S','engineering-diagram-accent-text'),lblW=txt(0,0,'W · E','engineering-diagram-accent-text'),lblD=txt(0,0,'Δ real 0,034 in  ·  Δ adm 0,153 in','engineering-diagram-accent-text'),lblR=txt(0,0,'0,207  CUMPLE','engineering-diagram-accent-text');
+lblD.classList.add('engineering-diagram-deformation-label');
+lblR.classList.add('engineering-diagram-verification-label');
 const mobileDiagramLabel=matchMedia('(max-width:850px)');
 function layoutDeformationLabel(){
  lblD.textContent='';
@@ -814,6 +816,10 @@ function render(){
  ghost.forEach((e,s)=>e.setAttribute('d',colPath(s,0)));
  ghR.forEach((e,i)=>{const h=H[i+1];e.setAttribute('x1',X(0,h,0));e.setAttribute('y1',Y(0,h));e.setAttribute('x2',X(1,h,0));e.setAttribute('y2',Y(1,h))});
  cols.forEach((e,s)=>e.setAttribute('d',colPath(s,df)));
+ [...cols,...rungs,...trays].forEach(e=>{
+  e.style.stroke=df>.01?'#8dbce6':'';
+  e.style.transition='stroke .3s ease';
+ });
  [...ghost,...ghR].forEach(e=>e.style.opacity=df*.4);
  rungs.forEach((e,i)=>{const h=H[i+1],x1=X(0,h,df),y1=Y(0,h),x2=X(1,h,df),y2=Y(1,h);
   e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);
