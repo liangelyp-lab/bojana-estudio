@@ -834,3 +834,146 @@ section[id] { scroll-margin-top: 96px; }
     bottom: var(--project-caption-bottom, 0px);
   }
 }
+
+/* Ingeniería estructural: segundo proyecto del recorrido. */
+.engineering-project {
+  min-height: calc(100svh - 59px);
+  display: flex;
+  align-items: center;
+  padding-block: clamp(88px, 10vw, 144px);
+  background: var(--paper);
+  color: var(--ink);
+  scroll-margin-top: 59px;
+}
+.engineering-project-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, .88fr) minmax(360px, 1.12fr);
+  gap: clamp(56px, 8vw, 120px);
+  align-items: center;
+}
+.engineering-project-copy { max-width: 560px; }
+.engineering-project-kicker {
+  margin: 0 0 28px;
+  color: var(--muted);
+  font-family: var(--navigation-font-family);
+  font-size: var(--navigation-compact-font-size);
+  line-height: 1.4;
+  font-weight: var(--navigation-font-weight);
+}
+.engineering-project h2 {
+  max-width: 11ch;
+  margin: 0 0 24px;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -.035em;
+}
+.engineering-project-lead {
+  max-width: 48ch;
+  margin: 0 0 36px;
+  color: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.engineering-project-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+.engineering-project-step {
+  appearance: none;
+  width: 100%;
+  margin: 0;
+  padding: 12px 0 0;
+  border: 0;
+  border-top: 1px solid #dededb;
+  border-radius: 0;
+  background: transparent;
+  color: #777;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1.35;
+  letter-spacing: .06em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .25s ease, border-color .25s ease;
+}
+.engineering-project-step span {
+  display: block;
+  margin-bottom: 7px;
+  color: #999;
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.engineering-project-step:hover,
+.engineering-project-step:focus-visible,
+.engineering-project-step[aria-current="true"] { color: var(--ink); }
+.engineering-project-step[aria-current="true"] { border-top-color: var(--ink); }
+.engineering-project-step[aria-current="true"] span { color: var(--muted); }
+.engineering-project-detail {
+  min-height: 5.6em;
+  max-width: 48ch;
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.55;
+}
+.engineering-project-figure { min-width: 0; margin: 0; }
+.engineering-project-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.engineering-project-figure figcaption {
+  margin-top: 16px;
+  color: #888;
+  font-size: 10px;
+  line-height: 1.4;
+}
+.engineering-project-figure svg * {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.engineering-project-figure svg .engineering-diagram-text {
+  fill: #555;
+  stroke: none;
+  font-size: 11px;
+  letter-spacing: .02em;
+  opacity: .9;
+}
+.engineering-project-figure svg .engineering-diagram-accent-text { fill: #555; }
+.engineering-project-figure svg .engineering-diagram-guide {
+  stroke: #b8b8b5;
+  stroke-dasharray: 3 5;
+  opacity: .55;
+}
+.engineering-project-figure svg .engineering-diagram-accent { stroke: #777; }
+
+@media (max-width: 850px) {
+  .engineering-project { min-height: 0; padding-block: 88px; }
+  .engineering-project-grid { grid-template-columns: 1fr; gap: 52px; }
+  .engineering-project-copy { max-width: 640px; }
+  .engineering-project h2 { max-width: 14ch; }
+  .engineering-project-figure { width: 100%; max-width: 680px; margin-inline: auto; }
+}
+@media (max-width: 520px) {
+  .engineering-project { padding-block: 72px; }
+  .engineering-project-grid { gap: 40px; }
+  .engineering-project-kicker { margin-bottom: 20px; }
+  .engineering-project h2 { margin-bottom: 18px; font-size: 34px; }
+  .engineering-project-lead { margin-bottom: 30px; font-size: 15px; }
+  .engineering-project-steps { gap: 8px; }
+  .engineering-project-step,
+  .engineering-project-step span { font-size: 9px; }
+  .engineering-project-detail { min-height: 0; font-size: 13px; }
+  .engineering-project-figure figcaption { font-size: 9px; }
+}
