@@ -869,16 +869,16 @@ section[id] { scroll-margin-top: 96px; }
   padding-top: clamp(28px, 3.8svh, 48px);
   padding-bottom: clamp(36px, 4.5svh, 56px);
   padding-right: clamp(24px, 4vw, 56px);
-  padding-left: clamp(90px, 12vw, 220px);
+  padding-left: clamp(64px, 9vw, 180px);
   background: var(--paper);
   color: var(--ink);
   scroll-margin-top: 59px;
 }
 .engineering-project-grid {
   width: 100%;
-  max-width: 1240px;
+  max-width: 1340px;
   display: grid;
-  grid-template-columns: minmax(0, 680px) minmax(360px, 460px);
+  grid-template-columns: minmax(0, 760px) minmax(320px, 500px);
   grid-template-rows: auto auto 130px;
   column-gap: clamp(28px, 3.5vw, 56px);
   row-gap: 0;
@@ -966,8 +966,8 @@ section[id] { scroll-margin-top: 96px; }
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
-  width: calc(100% + clamp(32px, 6vw, 96px));
-  max-width: 780px;
+  width: calc(100% + clamp(48px, 8vw, 120px));
+  max-width: 880px;
   height: 130px;
   min-height: 130px;
   margin: 0;
@@ -1079,7 +1079,7 @@ section[id] { scroll-margin-top: 96px; }
   z-index: 1;
   min-width: 0;
   width: 100%;
-  max-width: 460px;
+  max-width: 500px;
   margin: 0;
   padding-left: 0;
   display: flex;
@@ -1089,7 +1089,7 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-figure svg {
   display: block;
   width: 100%;
-  max-width: 460px;
+  max-width: 500px;
   height: auto;
   margin-left: 0;
   overflow: visible;
