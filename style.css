@@ -875,13 +875,19 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-grid {
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(280px, .88fr) minmax(360px, 1.12fr);
-  gap: clamp(56px, 8vw, 120px);
-  align-items: center;
+  grid-template-columns: 1.05fr .95fr 1.3fr 1.25fr;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "kicker kicker figure empty"
+    "title title figure empty"
+    "steps detail figure lead";
+  column-gap: clamp(28px, 3.5vw, 56px);
+  row-gap: clamp(22px, 3.5svh, 34px);
+  align-items: start;
 }
-.engineering-project-copy { max-width: 560px; }
 .engineering-project-kicker {
-  margin: 0 0 28px;
+  grid-area: kicker;
+  margin: 0;
   color: var(--muted);
   font-family: var(--navigation-font-family);
   font-size: var(--navigation-compact-font-size);
@@ -889,25 +895,32 @@ section[id] { scroll-margin-top: 96px; }
   font-weight: var(--navigation-font-weight);
 }
 .engineering-project h2 {
-  max-width: 11ch;
-  margin: 0 0 24px;
-  font-size: clamp(32px, 4vw, 48px);
-  line-height: 1.1;
+  grid-area: title;
+  align-self: start;
+  max-width: 9.2ch;
+  margin: 0;
+  font-size: clamp(40px, 4.15vw, 54px);
+  line-height: 1.04;
   font-weight: 500;
   letter-spacing: -.035em;
 }
 .engineering-project-lead {
-  max-width: 48ch;
-  margin: 0 0 36px;
+  grid-area: lead;
+  align-self: end;
+  max-width: 36ch;
+  margin: 0 0 10px;
   color: var(--body);
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.55;
 }
 .engineering-project-steps {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0 0 24px;
+  grid-area: steps;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: min(100%, 112px);
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -915,7 +928,7 @@ section[id] { scroll-margin-top: 96px; }
   appearance: none;
   width: 100%;
   margin: 0;
-  padding: 12px 0 0;
+  padding: 10px 2px 12px;
   border: 0;
   border-top: 1px solid #dededb;
   border-radius: 0;
@@ -932,7 +945,7 @@ section[id] { scroll-margin-top: 96px; }
 }
 .engineering-project-step span {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
   color: #999;
   font-size: 10px;
   letter-spacing: 0;
@@ -943,23 +956,29 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-step[aria-current="true"] { border-top-color: var(--ink); }
 .engineering-project-step[aria-current="true"] span { color: var(--muted); }
 .engineering-project-detail {
-  min-height: 5.6em;
-  max-width: 48ch;
-  margin: 0;
+  grid-area: detail;
+  align-self: start;
+  min-height: 0;
+  max-width: 23ch;
+  margin: 9px 0 0;
   color: #666;
   font-size: 14px;
   line-height: 1.55;
 }
 .engineering-project-figure {
+  grid-area: figure;
+  align-self: stretch;
   min-width: 0;
   height: 100%;
   min-height: 0;
   margin: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
+  row-gap: 16px;
   align-items: center;
 }
 .engineering-project-figure svg {
+  grid-row: 2;
   display: block;
   width: 100%;
   height: 100%;
@@ -967,7 +986,8 @@ section[id] { scroll-margin-top: 96px; }
   overflow: visible;
 }
 .engineering-project-figure figcaption {
-  margin-top: 16px;
+  grid-row: 1;
+  margin: 0;
   color: #888;
   font-size: 10px;
   line-height: 1.4;
@@ -997,21 +1017,42 @@ section[id] { scroll-margin-top: 96px; }
 
 @media (max-width: 850px) {
   .engineering-project { height: auto; min-height: calc(100svh - 59px); padding-block: 64px; overflow: visible; }
-  .engineering-project-grid { height: auto; grid-template-columns: 1fr; gap: 52px; }
-  .engineering-project-copy { max-width: 640px; }
+  .engineering-project-grid {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      "kicker figure"
+      "title figure"
+      "steps figure"
+      "detail lead";
+    gap: 36px;
+  }
   .engineering-project h2 { max-width: 14ch; }
   .engineering-project-figure { width: 100%; height: auto; max-width: 680px; margin-inline: auto; }
   .engineering-project-figure svg { height: auto; }
+  .engineering-project-steps { width: min(100%, 160px); }
+  .engineering-project-detail { margin-top: 0; }
 }
 @media (max-width: 520px) {
   .engineering-project { padding-block: 56px; }
-  .engineering-project-grid { gap: 40px; }
-  .engineering-project-kicker { margin-bottom: 20px; }
-  .engineering-project h2 { margin-bottom: 18px; font-size: 34px; }
-  .engineering-project-lead { margin-bottom: 30px; font-size: 15px; }
-  .engineering-project-steps { gap: 8px; }
+  .engineering-project-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas:
+      "kicker"
+      "title"
+      "figure"
+      "steps"
+      "detail"
+      "lead";
+    gap: 34px;
+  }
+  .engineering-project h2 { max-width: 11ch; font-size: 34px; }
+  .engineering-project-lead { max-width: 38ch; margin: 0; font-size: 15px; }
+  .engineering-project-steps { width: 100%; }
   .engineering-project-step,
   .engineering-project-step span { font-size: 9px; }
-  .engineering-project-detail { min-height: 0; font-size: 13px; }
+  .engineering-project-detail { max-width: 38ch; font-size: 13px; }
   .engineering-project-figure figcaption { font-size: 9px; }
 }
