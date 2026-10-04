@@ -1383,9 +1383,18 @@ section[id] { scroll-margin-top: 96px; }
   }
 }
 
-.engineering-project-steps li:nth-child(2) { --step-color: #86cda1; }
-.engineering-project-steps li:nth-child(3) { --step-color: #8dbce6; }
+.engineering-project-steps li:first-child { --connection-start: #d7d9da; --connection-end: #86cda1; }
+.engineering-project-steps li:nth-child(2) { --step-color: #86cda1; --connection-start: #86cda1; --connection-end: #8dbce6; }
+.engineering-project-steps li:nth-child(3) { --step-color: #8dbce6; --connection-start: #8dbce6; --connection-end: #dda0bc; }
 .engineering-project-steps li:nth-child(4) { --step-color: #dda0bc; }
+.engineering-project-steps li:not(:last-child)::after {
+  background: linear-gradient(to right, var(--connection-start), var(--connection-end)) left / calc(var(--connection-progress, 0) * 100%) 100% no-repeat, #d7d9da;
+}
+@media (max-width: 850px) {
+  .engineering-project-steps li:not(:last-child)::after {
+    background: linear-gradient(to bottom, var(--connection-start), var(--connection-end)) top / 100% calc(var(--connection-progress, 0) * 100%) no-repeat, #d7d9da;
+  }
+}
 .engineering-project-steps li .engineering-project-step::before {
   background: #d7d9da;
 }
