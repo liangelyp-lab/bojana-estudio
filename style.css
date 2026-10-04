@@ -876,12 +876,11 @@ section[id] { scroll-margin-top: 96px; }
   height: 100%;
   display: grid;
   grid-template-columns: 1fr .95fr 1.5fr 1fr;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   grid-template-areas:
     "kicker kicker figure empty"
     "title title figure empty"
-    "steps steps figure lead"
-    "detail detail figure lead";
+    "steps detail figure lead";
   column-gap: clamp(28px, 3.5vw, 56px);
   row-gap: clamp(22px, 3.5svh, 34px);
   align-items: start;
@@ -919,9 +918,9 @@ section[id] { scroll-margin-top: 96px; }
   align-self: start;
   position: relative;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0;
-  width: 100%;
+  width: min(100%, 170px);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -931,9 +930,9 @@ section[id] { scroll-margin-top: 96px; }
   position: absolute;
   z-index: 0;
   top: 5px;
-  left: 5px;
-  right: calc(25% - 5px);
-  height: 1px;
+  bottom: 43px;
+  left: 42px;
+  width: 1px;
   background: #d7d9da;
 }
 .engineering-project-steps li { position: relative; min-width: 0; }
@@ -941,9 +940,14 @@ section[id] { scroll-margin-top: 96px; }
   appearance: none;
   position: relative;
   z-index: 1;
+  display: grid;
+  grid-template-columns: 26px 18px minmax(0, 1fr);
+  column-gap: 8px;
+  align-items: start;
   width: 100%;
+  min-height: 48px;
   margin: 0;
-  padding: 21px 8px 0 0;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -959,9 +963,11 @@ section[id] { scroll-margin-top: 96px; }
 }
 .engineering-project-step::before {
   content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
+  grid-column: 2;
+  grid-row: 1;
+  position: relative;
+  z-index: 1;
+  justify-self: center;
   width: 11px;
   height: 11px;
   border-radius: 50%;
@@ -970,11 +976,20 @@ section[id] { scroll-margin-top: 96px; }
   transition: background-color .25s ease, transform .25s ease;
 }
 .engineering-project-step span {
-  display: block;
-  margin-bottom: 6px;
-  color: #999;
   font-size: 10px;
+  line-height: 1.35;
+}
+.engineering-project-step-number {
+  grid-column: 1;
+  grid-row: 1;
+  color: #999;
   letter-spacing: 0;
+}
+.engineering-project-step-label {
+  grid-column: 3;
+  grid-row: 1;
+  color: inherit;
+  letter-spacing: .06em;
 }
 .engineering-project-step:hover,
 .engineering-project-step:focus-visible,
@@ -983,7 +998,7 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-step:focus-visible::before,
 .engineering-project-step[aria-current="true"]::before { background: var(--ink); }
 .engineering-project-step[aria-current="true"]::before { transform: scale(1.12); }
-.engineering-project-step[aria-current="true"] span { color: var(--muted); }
+.engineering-project-step[aria-current="true"] .engineering-project-step-number { color: var(--muted); }
 .engineering-project-detail {
   grid-area: detail;
   align-self: start;
@@ -1053,16 +1068,16 @@ section[id] { scroll-margin-top: 96px; }
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: auto auto auto auto;
     grid-template-areas:
-      "kicker kicker"
+      "kicker figure"
       "title figure"
-      "steps steps"
+      "steps figure"
       "detail lead";
     gap: 36px;
   }
   .engineering-project h2 { max-width: 14ch; }
   .engineering-project-figure { width: 100%; height: auto; max-width: 680px; margin-inline: auto; }
   .engineering-project-figure svg { width: 100%; height: auto; margin-left: 0; }
-  .engineering-project-steps { width: 100%; }
+  .engineering-project-steps { width: min(100%, 170px); }
   .engineering-project-detail { margin-top: 0; }
 }
 @media (max-width: 520px) {
@@ -1081,7 +1096,7 @@ section[id] { scroll-margin-top: 96px; }
   }
   .engineering-project h2 { max-width: 11ch; font-size: 34px; }
   .engineering-project-lead { max-width: 38ch; margin: 0; font-size: 15px; }
-  .engineering-project-steps { width: 100%; }
+  .engineering-project-steps { width: min(100%, 180px); }
   .engineering-project-step,
   .engineering-project-step span { font-size: 9px; }
   .engineering-project-detail { max-width: 38ch; font-size: 13px; }
