@@ -1387,11 +1387,19 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-steps li:nth-child(3) { --step-color: #8dbce6; }
 .engineering-project-steps li:nth-child(4) { --step-color: #dda0bc; }
 .engineering-project-steps li .engineering-project-step::before {
+  background: #d7d9da;
+}
+.engineering-project-steps li.is-diagram-visible .engineering-project-step::before {
   background: var(--step-color, #d7d9da);
 }
 .engineering-project-steps li .engineering-project-step[aria-current="true"]::before,
 .engineering-project-steps li .engineering-project-step:hover::before,
 .engineering-project-steps li .engineering-project-step:focus-visible::before {
+  background: #d7d9da;
+}
+.engineering-project-steps li.is-diagram-visible .engineering-project-step[aria-current="true"]::before,
+.engineering-project-steps li.is-diagram-visible .engineering-project-step:hover::before,
+.engineering-project-steps li.is-diagram-visible .engineering-project-step:focus-visible::before {
   background: var(--step-color, var(--ink));
 }
 
