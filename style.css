@@ -1047,22 +1047,26 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-step-description {
   grid-column: 1;
   grid-row: 3;
-  max-height: 0;
-  margin: 0;
-  overflow: hidden;
+  max-height: none;
+  margin: 6px 0 0;
+  overflow: visible;
   color: #777;
   font-size: 10.5px !important;
   line-height: 1.46 !important;
   letter-spacing: 0;
   text-transform: none;
   opacity: 0;
-  transition: max-height .32s ease, margin-top .32s ease, opacity .22s ease;
+  visibility: hidden;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path .3s ease, opacity .22s ease, visibility .3s;
 }
 .engineering-project-step[aria-expanded="true"] .engineering-project-step-description {
   max-height: none;
   overflow: visible;
   margin-top: 6px;
   opacity: 1;
+  visibility: visible;
+  clip-path: inset(0);
 }
 .engineering-project-step:hover,
 .engineering-project-step:focus-visible,
