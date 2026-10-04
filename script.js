@@ -547,7 +547,8 @@
         return;
       }
       if (galleryReleased) {
-        if (downward && y >= trackStart() - entryLead * .72 && y < trackStart() + cardHeight) resumeGallery();
+        // Resume only at the gallery entrance, never from its outgoing edge.
+        if (downward && y >= trackStart() - entryLead * .72 && y <= trackStart() + 1) resumeGallery();
         return;
       }
       if (!enteringProject) {
@@ -788,19 +789,42 @@ const dr=(n,a,c)=>{const e=mk(n,Object.assign({pathLength:1},a),c);e.style.strok
 const ghost=[0,1].map(()=>dr('path',{},'engineering-diagram-guide')),ghR=[1,2,3].map(()=>dr('line',{},'engineering-diagram-guide'));
 const cols=[0,1].map(()=>dr('path',{})),rungs=[1,2,3].map(()=>dr('line',{})),trays=[1,2,3].map(()=>dr('line',{}));
 const base=[0,1].map(s=>dr('path',{d:`M${B[s][0]-16} ${B[s][1]+10}h32M${B[s][0]-10} ${B[s][1]+10}l-6 8M${B[s][0]} ${B[s][1]+10}l-6 8M${B[s][0]+10} ${B[s][1]+10}l-6 8`}));
-const hi=mk('path',{},'engineering-diagram-accent');hi.style.strokeWidth=4;
+const hi=mk('path',{},'engineering-diagram-accent engineering-diagram-verification');hi.style.strokeWidth=4;
 // cotas
 const dims=[txt(70,300,'27,56 in'),txt(70,200,'16,93 in'),txt(70,110,'16,93 in'),txt(150,455,'35,43 in')];
 // cargas
-const gArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent')),wArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent'));
+const gArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent engineering-diagram-load-arrow')),wArr=[0,1,2].map(()=>mk('path',{},'engineering-diagram-accent engineering-diagram-load-arrow'));
 const lblG=txt(0,0,'D · L · S','engineering-diagram-accent-text'),lblW=txt(0,0,'W · E','engineering-diagram-accent-text'),lblD=txt(0,0,'Δ real 0,034 in  ·  Δ adm 0,153 in','engineering-diagram-accent-text'),lblR=txt(0,0,'0,207  CUMPLE','engineering-diagram-accent-text');
+lblD.classList.add('engineering-diagram-deformation-label');
+lblR.classList.add('engineering-diagram-verification-label');
+const mobileDiagramLabel=matchMedia('(max-width:850px)');
+function layoutDeformationLabel(){
+ lblD.textContent='';
+ if(mobileDiagramLabel.matches){
+  ['Δ real 0,034 in','Δ adm 0,153 in'].forEach((line,i)=>{
+   const span=document.createElementNS(NS,'tspan');
+   span.setAttribute('x','270');span.setAttribute('dy',i?'17':'0');span.textContent=line;lblD.appendChild(span);
+  });
+ }else lblD.textContent='Δ real 0,034 in  ·  Δ adm 0,153 in';
+}
+mobileDiagramLabel.addEventListener('change',layoutDeformationLabel);
+layoutDeformationLabel();
 const arrow=(x1,y1,x2,y2)=>{const a=Math.atan2(y2-y1,x2-x1),h=7,f=d=>`${x2-h*Math.cos(a+d)} ${y2-h*Math.sin(a+d)}`;return `M${x1} ${y1}L${x2} ${y2}M${f(.5)}L${x2} ${y2}L${f(-.5)}`};
 const colPath=(s,t)=>{let d='';for(let i=0;i<=N;i++){const h=307*i/N;d+=(i?'L':'M')+X(s,h,t)+' '+Y(s,h)}return d};
 let draw=0,ld=0,df=0,hl=0,step=0,tgt={ld:0,df:0,hl:0},reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
 function render(){
+ btns.forEach((button,i)=>{
+  const visible=i===1?ld:i===2?df: i===3?hl:0;
+  button.parentElement.classList.toggle('is-diagram-visible',visible>.01);
+  if(i<3)button.parentElement.style.setProperty('--connection-progress',String(cl([ld,df,hl][i])));
+ });
  ghost.forEach((e,s)=>e.setAttribute('d',colPath(s,0)));
  ghR.forEach((e,i)=>{const h=H[i+1];e.setAttribute('x1',X(0,h,0));e.setAttribute('y1',Y(0,h));e.setAttribute('x2',X(1,h,0));e.setAttribute('y2',Y(1,h))});
  cols.forEach((e,s)=>e.setAttribute('d',colPath(s,df)));
+ [...cols,...rungs,...trays].forEach(e=>{
+  e.style.stroke=df>.01?'#8dbce6':'';
+  e.style.transition='stroke .3s ease';
+ });
  [...ghost,...ghR].forEach(e=>e.style.opacity=df*.4);
  rungs.forEach((e,i)=>{const h=H[i+1],x1=X(0,h,df),y1=Y(0,h),x2=X(1,h,df),y2=Y(1,h);
   e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);
@@ -820,7 +844,7 @@ function tick(){
 // controles
 const ol=root.querySelector('.engineering-project-steps');
 const btns=STEPS.map((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.className='engineering-project-step';b.type='button';b.setAttribute('aria-label',s[0]);b.innerHTML=`<span class="engineering-project-step-label">${s[0]}</span><span class="engineering-project-step-description" aria-hidden="true">${s[1]}</span>`;b.onclick=()=>{auto=false;go(i)};li.appendChild(b);ol.appendChild(li);return b});
-function go(i){step=i;tgt={ld:+(i>=1),df:+(i>=2),hl:+(i>=3)};btns.forEach((b,j)=>{const active=j==i;b.parentElement.classList.toggle('is-active',active);b.setAttribute('aria-current',active);b.setAttribute('aria-expanded',active);b.querySelector('.engineering-project-step-description').setAttribute('aria-hidden',!active)});const descEl=root.querySelector('.engineering-project-description-text');if(descEl)descEl.textContent=STEPS[i][1];if(ol.scrollWidth>ol.clientWidth)ol.scrollTo({left:btns[i].parentElement.offsetLeft-18,behavior:reduce?'auto':'smooth'})}
+function go(i){step=i;tgt={ld:+(i>=1),df:+(i>=2),hl:+(i>=3)};btns.forEach((b,j)=>{const active=j==i;b.parentElement.classList.toggle('is-active',active);b.setAttribute('aria-current',active);b.setAttribute('aria-expanded',active);b.querySelector('.engineering-project-step-description').setAttribute('aria-hidden',!active)});const descEl=root.querySelector('.engineering-project-description-text');if(descEl){descEl.textContent=STEPS[i][1];if(!reduce){descEl.getAnimations().forEach(a=>a.cancel());descEl.animate([{opacity:0,clipPath:'inset(0 0 100% 0)'},{opacity:1,clipPath:'inset(0)'}],{duration:300,easing:'ease-out'});}}if(ol.scrollWidth>ol.clientWidth)ol.scrollTo({left:btns[i].parentElement.offsetLeft-18,behavior:reduce?'auto':'smooth'})}
 let auto=!reduce,seen=false,timer;go(reduce?3:0);
 new IntersectionObserver(([e])=>{seen=e.isIntersecting;if(seen&&!timer)timer=setInterval(()=>{if(auto&&seen)go((step+1)%4)},3200)},{threshold:.35}).observe(root);
 tick();
