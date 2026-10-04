@@ -1162,12 +1162,14 @@ section[id] { scroll-margin-top: 96px; }
   .engineering-project h2 {
     width: 100%;
     max-width: none;
-    font-size: clamp(17px, 4.8vw, 32px);
-    text-align: center;
+    font-size: clamp(30px, 3.3vw, 42px);
+    line-height: 1.1;
+    font-weight: 500;
+    text-align: left;
   }
   .engineering-title-line {
-    display: block;
-    white-space: nowrap;
+    display: inline;
+    white-space: normal;
   }
   .desktop-br {
     display: none;
@@ -1322,8 +1324,8 @@ section[id] { scroll-margin-top: 96px; }
 @media (max-width: 520px) {
   .engineering-project {
     padding-block: 44px 50px;
-    padding-left: 14px;
-    padding-right: 14px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
   .engineering-project-grid {
     grid-template-columns: minmax(95px, 1fr) minmax(140px, 1.3fr);
@@ -1332,7 +1334,7 @@ section[id] { scroll-margin-top: 96px; }
   }
   .engineering-project h2 {
     max-width: none;
-    font-size: clamp(17px, 4.8vw, 25px);
+    font-size: clamp(30px, 3.3vw, 42px);
   }
   .engineering-project-deliverables {
     margin-top: 0;
@@ -1365,6 +1367,10 @@ section[id] { scroll-margin-top: 96px; }
     font-size: 12px;
     line-height: 1.5;
   }
+}
+
+@media (min-width: 521px) and (max-width: 760px) {
+  .engineering-project { padding-inline: 8px; }
 }
 
 /* ============ COMPONENTE: .bj-divider ============ */
