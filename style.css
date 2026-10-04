@@ -861,15 +861,19 @@ section[id] { scroll-margin-top: 96px; }
 
 /* Ingeniería estructural: segundo proyecto del recorrido. */
 .engineering-project {
-  min-height: calc(100svh - 59px);
+  --engineering-block-padding: clamp(36px, 5svh, 56px);
+  height: calc(100svh - 59px);
+  min-height: 0;
   display: flex;
   align-items: center;
-  padding-block: clamp(88px, 10vw, 144px);
+  padding-block: var(--engineering-block-padding);
   background: var(--paper);
   color: var(--ink);
   scroll-margin-top: 59px;
+  overflow: hidden;
 }
 .engineering-project-grid {
+  height: 100%;
   display: grid;
   grid-template-columns: minmax(280px, .88fr) minmax(360px, 1.12fr);
   gap: clamp(56px, 8vw, 120px);
@@ -946,11 +950,20 @@ section[id] { scroll-margin-top: 96px; }
   font-size: 14px;
   line-height: 1.55;
 }
-.engineering-project-figure { min-width: 0; margin: 0; }
+.engineering-project-figure {
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+}
 .engineering-project-figure svg {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  min-height: 0;
   overflow: visible;
 }
 .engineering-project-figure figcaption {
@@ -983,14 +996,15 @@ section[id] { scroll-margin-top: 96px; }
 .engineering-project-figure svg .engineering-diagram-accent { stroke: #777; }
 
 @media (max-width: 850px) {
-  .engineering-project { min-height: 0; padding-block: 88px; }
-  .engineering-project-grid { grid-template-columns: 1fr; gap: 52px; }
+  .engineering-project { height: auto; min-height: calc(100svh - 59px); padding-block: 64px; overflow: visible; }
+  .engineering-project-grid { height: auto; grid-template-columns: 1fr; gap: 52px; }
   .engineering-project-copy { max-width: 640px; }
   .engineering-project h2 { max-width: 14ch; }
-  .engineering-project-figure { width: 100%; max-width: 680px; margin-inline: auto; }
+  .engineering-project-figure { width: 100%; height: auto; max-width: 680px; margin-inline: auto; }
+  .engineering-project-figure svg { height: auto; }
 }
 @media (max-width: 520px) {
-  .engineering-project { padding-block: 72px; }
+  .engineering-project { padding-block: 56px; }
   .engineering-project-grid { gap: 40px; }
   .engineering-project-kicker { margin-bottom: 20px; }
   .engineering-project h2 { margin-bottom: 18px; font-size: 34px; }
