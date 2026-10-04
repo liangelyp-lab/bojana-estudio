@@ -806,8 +806,8 @@ function tick(){
  requestAnimationFrame(tick)}
 // controles
 const ol=root.querySelector('.engineering-project-steps');
-const btns=STEPS.map((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.className='engineering-project-step';b.type='button';b.setAttribute('aria-label',`0${i+1} ${s[0]}`);b.innerHTML=`<span class="engineering-project-step-number">0${i+1}</span><span class="engineering-project-step-label">${s[0]}</span><span class="engineering-project-step-description" aria-hidden="true">${s[1]}</span>`;b.onclick=()=>{auto=false;go(i)};li.appendChild(b);ol.appendChild(li);return b});
-function go(i){step=i;tgt={ld:+(i>=1),df:+(i>=2),hl:+(i>=3)};btns.forEach((b,j)=>{const active=j==i;b.parentElement.classList.toggle('is-active',active);b.setAttribute('aria-current',active);b.setAttribute('aria-expanded',active);b.querySelector('.engineering-project-step-description').setAttribute('aria-hidden',!active)})}
+const btns=STEPS.map((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.className='engineering-project-step';b.type='button';b.setAttribute('aria-label',s[0]);b.innerHTML=`<span class="engineering-project-step-label">${s[0]}</span><span class="engineering-project-step-description" aria-hidden="true">${s[1]}</span>`;b.onclick=()=>{auto=false;go(i)};li.appendChild(b);ol.appendChild(li);return b});
+function go(i){step=i;tgt={ld:+(i>=1),df:+(i>=2),hl:+(i>=3)};btns.forEach((b,j)=>{const active=j==i;b.parentElement.classList.toggle('is-active',active);b.setAttribute('aria-current',active);b.setAttribute('aria-expanded',active);b.querySelector('.engineering-project-step-description').setAttribute('aria-hidden',!active)});if(ol.scrollWidth>ol.clientWidth)ol.scrollTo({left:btns[i].parentElement.offsetLeft-18,behavior:reduce?'auto':'smooth'})}
 let auto=!reduce,seen=false,timer;go(reduce?3:0);
 new IntersectionObserver(([e])=>{seen=e.isIntersecting;if(seen&&!timer)timer=setInterval(()=>{if(auto&&seen)go((step+1)%4)},3200)},{threshold:.35}).observe(root);
 tick();
