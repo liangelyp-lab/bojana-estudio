@@ -1126,8 +1126,8 @@ section[id] { scroll-margin-top: 96px; }
 @media (max-width: 850px) {
   .engineering-project {
     height: auto;
-    min-height: calc(100svh - 59px);
-    padding-block: clamp(40px, 6svh, 60px);
+    min-height: 0;
+    padding-block: clamp(40px, 6svh, 60px) 12px;
     padding-left: clamp(16px, 4vw, 24px);
     padding-right: clamp(16px, 4vw, 24px);
     overflow: visible;
@@ -1325,7 +1325,7 @@ section[id] { scroll-margin-top: 96px; }
 
 @media (max-width: 520px) {
   .engineering-project {
-    padding-block: 44px 50px;
+    padding-block: 44px 12px;
     padding-left: 8px;
     padding-right: 8px;
   }
