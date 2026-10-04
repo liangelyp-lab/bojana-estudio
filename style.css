@@ -985,8 +985,8 @@ section[id] { scroll-margin-top: 96px; }
   position: absolute;
   z-index: 0;
   top: 24px;
-  left: 6px;
-  right: -6px;
+  left: 5px;
+  right: -5px;
   height: 1px;
   background: #d7d9da;
 }
@@ -1027,8 +1027,8 @@ section[id] { scroll-margin-top: 96px; }
   z-index: 1;
   align-self: center;
   justify-self: start;
-  width: 11px;
-  height: 11px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: #d7d9da;
   box-shadow: 0 0 0 4px var(--paper);
@@ -1225,7 +1225,7 @@ section[id] { scroll-margin-top: 96px; }
     content: "";
     position: absolute;
     z-index: 0;
-    left: 5px;
+    left: 4px;
     top: 12px;
     bottom: -28px;
     width: 1px;
@@ -1253,9 +1253,9 @@ section[id] { scroll-margin-top: 96px; }
   .engineering-project-step::before {
     content: "";
     position: static;
-    flex: 0 0 11px;
-    width: 11px;
-    height: 11px;
+    flex: 0 0 9px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     background: #d7d9da;
     box-shadow: 0 0 0 3px var(--paper);
