@@ -1298,7 +1298,7 @@ section[id] { scroll-margin-top: 96px; }
     height: auto;
     max-height: 250px;
     margin: 0;
-    transform: scale(1.25);
+    transform: scale(1.4);
     transform-origin: center;
   }
   .engineering-project-figure svg .engineering-diagram-text {
