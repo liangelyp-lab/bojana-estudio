@@ -966,8 +966,8 @@ section[id] { scroll-margin-top: 96px; }
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0;
-  width: 100%;
-  max-width: 680px;
+  width: calc(100% + clamp(32px, 6vw, 96px));
+  max-width: 780px;
   height: 130px;
   min-height: 130px;
   margin: 0;
@@ -1059,7 +1059,8 @@ section[id] { scroll-margin-top: 96px; }
   transition: max-height .32s ease, margin-top .32s ease, opacity .22s ease;
 }
 .engineering-project-step[aria-expanded="true"] .engineering-project-step-description {
-  max-height: 8em;
+  max-height: none;
+  overflow: visible;
   margin-top: 6px;
   opacity: 1;
 }
@@ -1459,4 +1460,3 @@ section[id] { scroll-margin-top: 96px; }
   animation-play-state: paused !important;
 }
 /* ============ FIN COMPONENTE: .bj-divider ============ */
-
