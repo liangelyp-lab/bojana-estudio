@@ -816,6 +816,7 @@ function render(){
  btns.forEach((button,i)=>{
   const visible=i===1?ld:i===2?df: i===3?hl:0;
   button.parentElement.classList.toggle('is-diagram-visible',visible>.01);
+  if(i<3)button.parentElement.style.setProperty('--connection-progress',String(cl([ld,df,hl][i])));
  });
  ghost.forEach((e,s)=>e.setAttribute('d',colPath(s,0)));
  ghR.forEach((e,i)=>{const h=H[i+1];e.setAttribute('x1',X(0,h,0));e.setAttribute('y1',Y(0,h));e.setAttribute('x2',X(1,h,0));e.setAttribute('y2',Y(1,h))});
