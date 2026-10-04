@@ -805,9 +805,9 @@ function tick(){
  const k=reduce?1:.07;draw+=(1-draw)*(reduce?1:.03);ld+=(tgt.ld-ld)*k;df+=(tgt.df-df)*k;hl+=(tgt.hl-hl)*k;render();
  requestAnimationFrame(tick)}
 // controles
-const ol=root.querySelector('.engineering-project-steps'),card=root.querySelector('.engineering-project-detail');
-const btns=STEPS.map((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.className='engineering-project-step';b.type='button';b.setAttribute('aria-label',`0${i+1} ${s[0]}`);b.innerHTML=`<span class="engineering-project-step-number">0${i+1}</span><span class="engineering-project-step-label">${s[0]}</span>`;b.onclick=()=>{auto=false;go(i)};li.appendChild(b);ol.appendChild(li);return b});
-function go(i){step=i;tgt={ld:+(i>=1),df:+(i>=2),hl:+(i>=3)};card.textContent=STEPS[i][1];btns.forEach((b,j)=>b.setAttribute('aria-current',j==i))}
+const ol=root.querySelector('.engineering-project-steps');
+const btns=STEPS.map((s,i)=>{const li=document.createElement('li'),b=document.createElement('button');b.className='engineering-project-step';b.type='button';b.setAttribute('aria-label',`0${i+1} ${s[0]}`);b.innerHTML=`<span class="engineering-project-step-number">0${i+1}</span><span class="engineering-project-step-label">${s[0]}</span><span class="engineering-project-step-description" aria-hidden="true">${s[1]}</span>`;b.onclick=()=>{auto=false;go(i)};li.appendChild(b);ol.appendChild(li);return b});
+function go(i){step=i;tgt={ld:+(i>=1),df:+(i>=2),hl:+(i>=3)};btns.forEach((b,j)=>{const active=j==i;b.setAttribute('aria-current',active);b.setAttribute('aria-expanded',active);b.querySelector('.engineering-project-step-description').setAttribute('aria-hidden',!active)})}
 let auto=!reduce,seen=false,timer;go(reduce?3:0);
 new IntersectionObserver(([e])=>{seen=e.isIntersecting;if(seen&&!timer)timer=setInterval(()=>{if(auto&&seen)go((step+1)%4)},3200)},{threshold:.35}).observe(root);
 tick();
