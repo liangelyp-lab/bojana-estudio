@@ -1093,7 +1093,8 @@ section[id] { scroll-margin-top: 96px; }
   height: auto;
   margin-left: 0;
   overflow: visible;
-  transform: none;
+  transform: scale(1.16);
+  transform-origin: center right;
 }
 .engineering-project-figure svg * {
   fill: none;
