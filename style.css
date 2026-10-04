@@ -1125,6 +1125,10 @@ section[id] { scroll-margin-top: 96px; }
 }
 .engineering-project-figure svg .engineering-diagram-accent { stroke: #777; }
 .engineering-project-figure svg .engineering-diagram-load-arrow { stroke: #86cda1; }
+.engineering-project-figure svg .engineering-diagram-verification { stroke: #dda0bc; }
+.engineering-project-figure svg .engineering-diagram-deformation-label { fill: #8dbce6; }
+.engineering-project-figure svg .engineering-diagram-verification-label { fill: #dda0bc; }
+.engineering-project-figure svg .engineering-diagram-text tspan { fill: inherit; }
 
 .engineering-project-description-box {
   display: none;
