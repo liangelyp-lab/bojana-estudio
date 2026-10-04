@@ -891,8 +891,7 @@ section[id] { scroll-margin-top: 96px; }
   gap: clamp(22px, 2.6vw, 40px);
   min-width: 0;
 }
-.engineering-project-kicker,
-.engineering-project-context {
+.engineering-project-kicker {
   margin: 0;
   color: var(--muted);
   font-family: var(--navigation-font-family);
@@ -900,7 +899,6 @@ section[id] { scroll-margin-top: 96px; }
   line-height: 1.4;
   font-weight: var(--navigation-font-weight);
 }
-.engineering-project-context { color: var(--muted); }
 .engineering-project-copy {
   grid-column: 1 / 7;
   grid-row: 2;
