@@ -777,10 +777,10 @@ const svg=root.querySelector('.engineering-project-figure svg'),NS='http://www.w
 const mk=(n,a,c)=>{const e=document.createElementNS(NS,n);for(const k in a)e.setAttribute(k,a[k]);if(c)e.className.baseVal=c;svg.appendChild(e);return e};
 const txt=(x,y,s,c)=>{const e=mk('text',{x,y},'engineering-diagram-text '+(c||''));e.textContent=s;return e};
 const STEPS=[
- ['Modelo','Modelo de elementos finitos en STAAD.Pro, con perfiles de acero ASTM A36 y la geometría de apoyos tal como se construye.'],
- ['Cargas','Peso propio, sobrecarga, nieve, viento y sismo, combinados en 13 combinaciones de resistencia y 16 de servicio.'],
- ['Deformación','Desplazamiento calculado de 0,034 in contra 0,153 in admisibles (L/400). En el dibujo la deformación está ampliada.'],
- ['Verificación','Miembro 1 (HSS4X4X.125): relación demanda/capacidad 0,207. Debe ser menor a 1,00: cumple.']];
+ ['Modelo','Elementos finitos en STAAD.Pro: acero ASTM A36 y apoyos según obra.'],
+ ['Cargas','Peso propio, sobrecarga, nieve, viento y sismo: 13 combinaciones de resistencia y 16 de servicio.'],
+ ['Deformación','Desplazamiento: 0,034 in; admisible: 0,153 in (L/400). Deformación gráfica ampliada.'],
+ ['Verificación','Miembro 1 · HSS4X4X.125: demanda/capacidad 0,207 < 1,00. Cumple.']];
 const H=[0,138,222,307],B=[[130,370],[290,415]],D=18,N=14;
 const X=(s,h,t)=>B[s][0]+D*t*(h/307)**2,Y=(s,h)=>B[s][1]-h;
 const cl=v=>Math.max(0,Math.min(1,v));
