@@ -212,7 +212,7 @@
       if (window.location.hash !== '#contacto') history.pushState(null, '', '#contacto');
       openContact(event.detail === 0);
     }));
-    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
+    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', (event) => {
       if (link.getAttribute('href') !== '#contacto') cancelContactScroll();
     }));
     // Scrolling into Contact never opens the form. Once opened, it remains
@@ -656,9 +656,25 @@
     window.addEventListener('keyup', (event) => {
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) exitKeyHeld = false;
     });
-    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
+    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', (event) => {
       // The gallery cue uses the coordinated photo and page exit animation.
       if (link.matches('.project-scroll-cue')) return;
+      if (link.getAttribute('href') === '#proyectos') {
+        event.preventDefault();
+        cancelEntry();
+        cancelExit();
+        cancelAnimationFrame(photoFrame);
+        photoFrame = 0;
+        previousPhotoTime = 0;
+        passStart = passLast = target = rendered = 0;
+        galleryReleased = resumedPass = enteredNextProject = firstPhotoLooped = false;
+        captionIndex = -1;
+        slides[0].style.paddingLeft = '';
+        bypassUntil = performance.now() + 1600;
+        measure();
+        window.scrollTo({ top: trackStart(), behavior: reducedMotion.matches ? 'instant' : 'smooth' });
+        return;
+      }
       releaseGallery();
       bypassUntil = performance.now() + 1600;
       enteredNextProject = link.getAttribute('href') !== '#proyectos';
