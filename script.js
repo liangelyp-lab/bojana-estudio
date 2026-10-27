@@ -212,7 +212,7 @@
       if (window.location.hash !== '#contacto') history.pushState(null, '', '#contacto');
       openContact(event.detail === 0);
     }));
-    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', (event) => {
+    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
       if (link.getAttribute('href') !== '#contacto') cancelContactScroll();
     }));
     // Scrolling into Contact never opens the form. Once opened, it remains
@@ -302,23 +302,6 @@
   const nextProjectSection = document.querySelector('#ingenieria');
   const studioSection = document.querySelector('#estudio');
   if (projectTrack && projectCard && galleryStage && rail && slides.length && galleryLabel) {
-    const projectTitle = projectCard.querySelector('h2');
-    const projectDescription = projectCard.querySelector('.project-description');
-    const projectCredit = projectCard.querySelector('.project-credit');
-    const projectDetails = {
-      planta: { title: 'Ampliación de planta de 11 MW', description: 'Documentación estructural de soportes y fundaciones para la ampliación de una planta industrial en Peoria, Illinois.', credit: 'Ing. José Bojana · Contractor de I.C.I.S. Engineering' },
-      alisos: { title: 'Los Alisos', description: 'Remodelación integral de áreas comunes que conecta SUM, gimnasio y espacios exteriores.', credit: '' }
-    };
-    const paintProject = (index) => {
-      const key = slides[index].dataset.project;
-      const details = projectDetails[key];
-      projectTitle.textContent = details.title;
-      projectDescription.textContent = details.description;
-      projectCredit.textContent = details.credit;
-      projectCredit.hidden = !details.credit;
-      projectSection.dataset.activeProject = key;
-    };
-    paintProject(0);
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const verticalGallery = window.matchMedia('(max-width: 760px)');
     projectSection.style.overflowAnchor = 'none';
@@ -408,7 +391,6 @@
       if (next !== captionIndex) {
         captionIndex = next;
         galleryLabel.textContent = slides[next].dataset.caption;
-        paintProject(next);
       }
       if (verticalGallery.matches) {
         const photoBottom = photoStarts[next] + slides[next].offsetHeight - position;
@@ -560,7 +542,10 @@
       const downward = y > previousY;
       const upward = y < previousY - 1;
       previousY = y;
-
+      if (upward && !galleryReleased && !enteringProject && !exitPending && !exiting) {
+        releaseGallery();
+        return;
+      }
       if (galleryReleased) {
         // Resume only at the gallery entrance, never from its outgoing edge.
         if (downward && y >= trackStart() - entryLead * .72 && y <= trackStart() + 1) resumeGallery();
@@ -582,7 +567,7 @@
       const now = performance.now();
       if (now - lastWheelAt > 140) wheelSequence++;
       lastWheelAt = now;
-      if (event.deltaY < 0) return;
+      if (event.deltaY < 0) { releaseGallery(); return; }
       if (enteringProject) { event.preventDefault(); return; }
       if (exitPending || exiting) {
         exitWheelSequence = wheelSequence;
@@ -616,7 +601,7 @@
       touchY = nextY;
       touchX = nextX;
       if (Math.abs(down) <= Math.abs(across)) return;
-      if (down < 0) return;
+      if (down < 0) { releaseGallery(); return; }
       if (enteringProject) { if (event.cancelable) event.preventDefault(); return; }
       if (captureProjectEntry(down)) { if (event.cancelable) event.preventDefault(); return; }
       const y = window.scrollY;
@@ -634,7 +619,8 @@
     window.addEventListener('keydown', (event) => {
       if (event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey
         || event.target.closest('input, textarea, select, button, [contenteditable]')) return;
-      if (['Escape', 'Home', 'End'].includes(event.key)) {
+      if (['Escape', 'Home', 'End', 'ArrowUp', 'PageUp'].includes(event.key)
+        || (event.key === ' ' && event.shiftKey)) {
         releaseGallery();
         if (event.key === 'End') enteredNextProject = true;
         return;
@@ -656,25 +642,9 @@
     window.addEventListener('keyup', (event) => {
       if (['ArrowDown', 'PageDown', ' '].includes(event.key)) exitKeyHeld = false;
     });
-    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', (event) => {
+    document.querySelectorAll('a[href^="#"]').forEach((link) => link.addEventListener('click', () => {
       // The gallery cue uses the coordinated photo and page exit animation.
       if (link.matches('.project-scroll-cue')) return;
-      if (link.getAttribute('href') === '#proyectos') {
-        event.preventDefault();
-        cancelEntry();
-        cancelExit();
-        cancelAnimationFrame(photoFrame);
-        photoFrame = 0;
-        previousPhotoTime = 0;
-        passStart = passLast = target = rendered = 0;
-        galleryReleased = resumedPass = enteredNextProject = firstPhotoLooped = false;
-        captionIndex = -1;
-        slides[0].style.paddingLeft = '';
-        bypassUntil = performance.now() + 1600;
-        measure();
-        window.scrollTo({ top: trackStart(), behavior: reducedMotion.matches ? 'instant' : 'smooth' });
-        return;
-      }
       releaseGallery();
       bypassUntil = performance.now() + 1600;
       enteredNextProject = link.getAttribute('href') !== '#proyectos';
@@ -789,8 +759,6 @@
         event.preventDefault();
         if (galleryReleased) {
           nextProjectSection?.scrollIntoView({ behavior: 'smooth' });
-        } else if (captionIndex < slides.length - 1) {
-          window.scrollTo({ top: trackStart() + photoStarts[captionIndex + 1] - playbackLead(), behavior: reducedMotion.matches ? 'instant' : 'smooth' });
         } else {
           requestExit();
         }

@@ -1605,21 +1605,3 @@ section[id] { scroll-margin-top: 96px; }
   .engineering-project-intro { margin-top: 4px; font-size: 13px; }
   .engineering-project-example { margin-top: 8px; }
 }
-
-/* The industrial case shares the existing project gallery. */
-#proyectos .project-summary { flex: 1; min-width: 0; }
-#proyectos .project-credit { margin: 4px 0 0; font-size: 11px; line-height: 1.4; color: #b0b0ad; }
-#proyectos .project-copy { min-height: 100px; box-sizing: border-box; }
-#proyectos .gallery-slide--technical { width: min(78vw, 1000px); display: flex; align-items: center; justify-content: center; background: #fff; }
-#proyectos .gallery-slide--technical .gallery-frame { width: 100%; height: 100%; padding: 34px 40px 64px; box-sizing: border-box; object-fit: contain; }
-#proyectos .gallery-slide--technical:first-child .gallery-frame { max-width: 460px; max-height: 440px; }
-#proyectos[data-active-project="planta"] .gallery-label { background: linear-gradient(transparent, #fff 60%); color: #222; }
-#proyectos[data-active-project="planta"] .project-scroll-cue { color: #444; }
-@media (max-width: 760px) {
-  #proyectos .project-copy { min-height: 145px; }
-  #proyectos .gallery-slide--technical { width: 100%; height: 420px; }
-  #proyectos .gallery-slide--technical .gallery-frame { height: 100%; padding: 24px 18px 58px; }
-}
-#proyectos[data-active-project="planta"] .project-copy h2,
-#proyectos[data-active-project="planta"] .project-description,
-#proyectos[data-active-project="planta"] .project-credit { color: #555; }
